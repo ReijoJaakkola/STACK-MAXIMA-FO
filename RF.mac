@@ -1,0 +1,91 @@
+/*
+Code for generating random FO-formulas.
+@Reijo Jaakkola
+@reijo.jaakkola@tuni.fi
+*/
+
+/*
+Global vocabulary that is used for testing these functions.
+In stack exercises there will always be a global vocabulary variable.
+Vocabulary is understood as a dictionary which associates with
+each symbol its arity.
+*/
+VOC: [["P",1],["R",2]];
+
+/*
+Function for generating random atomic formulas (not identity) which must contain
+a given variable. Also the atomic formula will not contain the same variable twice.
+
+@param[in]	VARIABLE	The variable that the atomic formula should contain.
+@param[in]	VARIABLES	All the variables that the formula can contain _given as a list_.
+@param[in]	VOCABULARY	The vocabulary from which the we can choose relational symbol _given as a list_.
+
+@return					Random atomic formula which contains VARIABLE.
+*/
+RandomAtomicFormulaWithVariable(VARIABLE, VARIABLES, VOCABULARY):=block([],
+	/*Select randomly an index. The symbol for the atomic formula*/
+	/*will be the symbol in that position in VOCABULARY.*/
+	randomIndex: random(length(VOCABULARY)) + 1,
+	Symbol: VOCABULARY[randomIndex],
+	/*Keep in mind whether the varible is added or not.*/
+	notAdded: true,
+	/*Start creating the atomic formula as a string.*/
+	AtomicFormula: sconcat(Symbol,"("),
+	for i:1 thru assoc(Symbol, VOC) do (
+		/*Variable to be added.*/
+		VAR: "",
+		/*Throw a coin wether we add VARIABLE now or not.*/
+		/*Also check that if we are at the end of the formula*/
+		/*and the variable has not been added, then it will be added.*/
+		coin: random(2),
+		if (notAdded = true and (coin = 0 or i = assoc(Symbol, VOC))) then (
+			notAdded: false,
+			VAR: VARIABLE
+		)
+		else (
+			/*Similarly how we selected the symbol, select a random variable.*/
+			randomIndex: random(length(VARIABLES)) + 1,
+			VAR: VARIABLES[randomIndex],
+			/*Remove the variable from the list.*/
+			VARIABLES: delete(VAR, VARIABLES)
+		),
+		if (i = 1) then (
+			AtomicFormula: sconcat(AtomicFormula,VAR)
+		)
+		else (
+			AtomicFormula: sconcat(AtomicFormula,",",VAR)
+		)
+	),
+	AtomicFormula: sconcat(AtomicFormula, ")"),
+	return(AtomicFormula));
+
+/*
+Function for generating random atomic formulas (not identity). 
+Also the atomic formula will not contain the same variable twice.
+
+@param[in]	VARIABLES	All the variables that the formula can contain _given as a list_.
+@param[in]	VOCABULARY	The vocabulary from which the we can choose relational symbol _given as a list_.
+
+@return					Random atomic formula.
+*/
+RandomAtomicFormula(VARIABLES, VOCABULARY):=block([],
+	/*Select randomly an index. The symbol for the atomic formula*/
+	/*will be the symbol in that position in VOCABULARY.*/
+	randomIndex: random(length(VOCABULARY)) + 1,
+	Symbol: VOCABULARY[randomIndex],
+	/*Start creating the atomic formula as a string.*/
+	AtomicFormula: sconcat(Symbol,"("),
+	for i:1 thru assoc(Symbol, VOC) do (
+		/*Similarly how we selected the symbol, select a random variable.*/
+		randomIndex: random(length(VARIABLES)) + 1,
+		if not(i = 1) then (
+			AtomicFormula: sconcat(AtomicFormula,",",VARIABLES[randomIndex])
+		)
+		else (
+			AtomicFormula: sconcat(AtomicFormula,VARIABLES[randomIndex])
+		),
+		/*Remove the variable from the list.*/
+		VARIABLES: delete(VARIABLES[randomIndex], VARIABLES)
+	),
+	AtomicFormula: sconcat(AtomicFormula, ")"),
+	return(AtomicFormula));
