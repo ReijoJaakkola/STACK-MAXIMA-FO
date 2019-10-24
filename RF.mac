@@ -102,7 +102,7 @@ CON: ["|","&","->","<->"];
 
 /*
 Function for generating random quantifier-free formulas from a given list
-of atomic formulas. 
+of atomic formulas. The formulas don't have to be distinct.
 
 @param[in]	LAYER		Current number of formulas.
 @param[in]	FORMULAS	Current list of formulas.
@@ -123,4 +123,4 @@ RandomQuantifierFreeFormula(LAYER, FORMULAS, CONNECTIVES):=block([],
 		/*Similarly select the next formula randomly.*/
 		randomIndex: random(length(FORMULAS)) + 1,
 		FORMULA: FORMULAS[randomIndex],
-		return(sconcat("(",FORMULA,CONNECTIVE,RandomQuantifierFreeFormula(LAYER - 1, delete(FORMULA, FORMULAS), CONNECTIVES),")"))));
+		return(sconcat("(",FORMULA,CONNECTIVE,RandomQuantifierFreeFormula(LAYER - 1, delete(FORMULA, FORMULAS, 1), CONNECTIVES),")"))));
