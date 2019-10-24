@@ -25,6 +25,8 @@ a given variable. Also the atomic formula will not contain the same variable twi
 RandomAtomicFormulaWithVariable(VARIABLE, VARIABLES, VOCABULARY):=block([],
 	/*Select randomly an index. The symbol for the atomic formula*/
 	/*will be the symbol in that position in VOCABULARY.*/
+	/*Note that in MAXIMA indexing starts at 1, but random(n)*/
+	/*returns value from the interval [0,n-1].*/
 	randomIndex: random(length(VOCABULARY)) + 1,
 	Symbol: VOCABULARY[randomIndex],
 	/*Keep in mind whether the varible is added or not.*/
@@ -71,6 +73,8 @@ Also the atomic formula will not contain the same variable twice.
 RandomAtomicFormula(VARIABLES, VOCABULARY):=block([],
 	/*Select randomly an index. The symbol for the atomic formula*/
 	/*will be the symbol in that position in VOCABULARY.*/
+	/*Note that in MAXIMA indexing starts at 1, but random(n)*/
+	/*returns value from the interval [0,n-1].*/
 	randomIndex: random(length(VOCABULARY)) + 1,
 	Symbol: VOCABULARY[randomIndex],
 	/*Start creating the atomic formula as a string.*/
@@ -89,3 +93,34 @@ RandomAtomicFormula(VARIABLES, VOCABULARY):=block([],
 	),
 	AtomicFormula: sconcat(AtomicFormula, ")"),
 	return(AtomicFormula));
+
+/*
+Possible connectives stored here as global variable.
+| = OR, & = AND, -> = IF THEN, <-> = IFF
+*/
+CON: ["|","&","->","<->"];
+
+/*
+Function for generating random quantifier-free formulas from a given list
+of atomic formulas. 
+
+@param[in]	LAYER		Current number of formulas.
+@param[in]	FORMULAS	Current list of formulas.
+@param[in]	CONNECTIVES List of possible connectives.
+
+@return					Random atomic formula.
+*/
+RandomQuantifierFreeFormula(LAYER, FORMULAS, CONNECTIVES):=block([],
+	if (LAYER = 1) then (
+		/*In the base case just return the first atomic formula from the list.*/
+		return(FORMULAS[1])
+	)
+	else (
+		/*Select randomly an index. The next connective for the atomic*/
+		/*formula will be the connective in that position in CONNECTIVES.*/
+		randomIndex: random(length(CONNECTIVES)) + 1,
+		CONNECTIVE: CONNECTIVES[randomIndex],
+		/*Similarly select the next formula randomly.*/
+		randomIndex: random(length(FORMULAS)) + 1,
+		FORMULA: FORMULAS[randomIndex],
+		return(sconcat("(",FORMULA,CONNECTIVE,RandomQuantifierFreeFormula(LAYER - 1, delete(FORMULA, FORMULAS), CONNECTIVES),")"))));
