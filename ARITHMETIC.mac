@@ -75,3 +75,75 @@ RandomArFormulaInfix(CALC,VAR):=block([],
 		else (
 			return(sconcat("(",RandomArFormulaInfix(CALC-dice-1,VAR),"*",RandomArFormulaInfix(dice,VAR),")"))
 		)));
+
+/*
+Function which removes all the given characters from a given string.
+Does not affect the original string.
+
+@param[in]	CHAR	Characters that should be removed.
+@param[in]	S		String for which we want to do the clearing.
+
+@return				Cleared string.
+*/
+ClearString(CHAR,S):=block([],
+	for i:1 thru length(CHAR) do (
+		S: sremove(CHAR[i],S)
+	),
+	return(S));
+
+/*
+Convert a given term in Polish notation into infix notation.
+
+This function assumes that the term does not contain variables
+or constants which have lenght longer than one!
+
+@param[in]	T	Term in polish notation.
+
+@return			Equivalent term in infix notation.
+*/
+
+ConvertPolishToInfix(T):=block([],
+	/*First clear the string from brackets and apostrophes.*/
+	T: ClearString(["(",",",")"],T),
+	/*A list which will be treated as stack in this function.*/
+	/*Stores the next multiplication operation that will be written.*/
+	OPER_STACK: [],
+	/*List that will be treated as stack in this function for storing*/
+	/*the next variables that the calculation will affect.*/
+	VAR_STACK: [],
+	/*List that will be treated as stack for storing the progress made*/
+	/*on previous operators.*/
+	COUNTER_STACK: [],
+	/*Counter for storing the progress.*/
+	counter: 0,
+	/*the next variables that will be used in the formula.*/
+	for i:1 thru slength(T) do (
+		/*Function treats anything that is not summation*/
+		/*or multiplication symbol as a variable, and thus*/
+		/*they will increase the counter.*/
+		if (charat(T,i) = "+" or charat(T,i) = "*") then (
+			push(charat(T,i),OPER_STACK),
+			/*Start a new counter.*/
+			push(counter, COUNTER_STACK),
+			counter: 0
+		)
+		else (
+			push(charat(T,i),VAR_STACK),
+			counter: counter + 1
+		),
+		if (counter = 2) then (
+			while counter = 2 do (
+				/*Pop the two variables from stack.*/
+				VAR1: pop(VAR_STACK),
+				VAR2: pop(VAR_STACK),
+				/*Pop the operation.*/
+				OPERATION: pop(OPER_STACK),
+				/*Push the new string back.*/
+				push(sconcat("(",VAR1,OPERATION,VAR2,")"),VAR_STACK),
+				/*Pop the previous counter.*/
+				counter: pop(COUNTER_STACK),
+				/*Remember to increase the counter for the last operator,*/
+				/*since we added now a new one.*/
+				counter: counter + 1))),
+	/*The resulting formula is the final element in the VAR_STACK.*/
+	return(pop(VAR_STACK)));
