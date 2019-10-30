@@ -1,0 +1,43 @@
+/*
+Code for handling arithmetic terms.
+@Reijo Jaakkola
+@reijo.jaakkola@tuni.fi
+*/
+
+/*
+This file will contain code that generates random terms in
+the arithmetic vocabulary {+,*,0,1}, and also a conversion function
+which converts from polish notation to infix notation.
+*/
+
+/*
+
+@param[in]		CALC	Number of summation and multiplication symbols the term should contain.
+@param[in]		VAR		List of variables the term can contain.
+
+@return					Random term of arithmetic vocabulary in polish notation
+						that contains SUM many summation symbols and MULT many multiplication
+						symbols.
+*/
+RandomArFormulaPolish(CALC,VAR):=block([],
+	/*If there are no summations or multiplications*/
+	/*left then add a random variable to the term.*/
+	if (CALC = 0) then (
+		randIndex: random(length(VAR))+1,
+		return(VAR[randIndex])
+	)
+	else (
+		/*Select randomly whether we choose summation or multiplication.*/
+		coin: random(2),
+		/*Then distribute the remaining resources for summation and multiplication randomly*/
+		/*between the new two subformulas.*/
+		dice: random(CALC),
+		
+		if (coin = 0) then (
+			return(sconcat("+","(",RandomArFormulaPolish(CALC-dice,VAR),",",RandomArFormulaPolish(dice,VAR),")"))
+		)
+		else (
+			return(sconcat("*","(",RandomArFormulaPolish(CALC-dice,VAR),",",RandomArFormulaPolish(dice,VAR),")"))
+		)
+	));
+		
