@@ -43,3 +43,35 @@ RandomArFormulaPolish(CALC,VAR):=block([],
 			return(sconcat("*","(",RandomArFormulaPolish(CALC-dice-1,VAR),",",RandomArFormulaPolish(dice,VAR),")"))
 		)));
 		
+/*
+Generate a random arithmetical term in infix notation.
+
+@param[in]		CALC	Number of summation and multiplication symbols the term should contain.
+@param[in]		VAR		List of variables the term can contain.
+
+@return					Random term of arithmetic vocabulary in infix notation
+						that contains SUM many summation symbols and MULT many multiplication
+						symbols.
+*/
+RandomArFormulaInfix(CALC,VAR):=block([],
+	/*If there are no summations or multiplications*/
+	/*left then add a random variable to the term.*/
+	if (CALC = 0) then (
+		/*Add 0 and 1 to the set of possible variables.*/
+		VAR: cons("0",VAR),
+		VAR: cons("1",VAR),
+		randIndex: random(length(VAR))+1,
+		return(VAR[randIndex])
+	)
+	else (
+		/*Select randomly whether we choose summation or multiplication.*/
+		coin: random(2),
+		/*Then distribute the remaining resources for summation and multiplication randomly*/
+		/*between the new two subformulas.*/
+		dice: random(CALC),
+		if (coin = 0) then (
+			return(sconcat("(",RandomArFormulaInfix(CALC-dice-1,VAR),"+",RandomArFormulaInfix(dice,VAR),")"))
+		)
+		else (
+			return(sconcat("(",RandomArFormulaInfix(CALC-dice-1,VAR),"*",RandomArFormulaInfix(dice,VAR),")"))
+		)));
