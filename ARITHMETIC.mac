@@ -11,6 +11,7 @@ which converts from polish notation to infix notation.
 */
 
 /*
+Generate a random arithmetical term in Polish notation.
 
 @param[in]		CALC	Number of summation and multiplication symbols the term should contain.
 @param[in]		VAR		List of variables the term can contain.
@@ -23,6 +24,9 @@ RandomArFormulaPolish(CALC,VAR):=block([],
 	/*If there are no summations or multiplications*/
 	/*left then add a random variable to the term.*/
 	if (CALC = 0) then (
+		/*Add 0 and 1 to the set of possible variables.*/
+		VAR: cons("0",VAR),
+		VAR: cons("1",VAR),
 		randIndex: random(length(VAR))+1,
 		return(VAR[randIndex])
 	)
@@ -32,12 +36,10 @@ RandomArFormulaPolish(CALC,VAR):=block([],
 		/*Then distribute the remaining resources for summation and multiplication randomly*/
 		/*between the new two subformulas.*/
 		dice: random(CALC),
-		
 		if (coin = 0) then (
-			return(sconcat("+","(",RandomArFormulaPolish(CALC-dice,VAR),",",RandomArFormulaPolish(dice,VAR),")"))
+			return(sconcat("+","(",RandomArFormulaPolish(CALC-dice-1,VAR),",",RandomArFormulaPolish(dice,VAR),")"))
 		)
 		else (
-			return(sconcat("*","(",RandomArFormulaPolish(CALC-dice,VAR),",",RandomArFormulaPolish(dice,VAR),")"))
-		)
-	));
+			return(sconcat("*","(",RandomArFormulaPolish(CALC-dice-1,VAR),",",RandomArFormulaPolish(dice,VAR),")"))
+		)));
 		
