@@ -217,3 +217,89 @@ ConvertInfixToFormula(T):=block([T1, T2, IndexOfInnerMostOperator],
 			return((T1 + T2)))
 		else (
 			return((T1 * T2)))));
+
+/*
+Helper function for checking that a given string is 
+representing a number.
+
+@param[in]	C	The string.
+
+@return			True iff C is a string representing an integer.
+*/
+INTEGERP(C):=block([X],
+	/*First check that C is a string.*/
+	if (stringp(C) = false) then (return(false)),
+	X:charlist(C),
+	/*We will analyse the ASCII codes for each character in C.*/
+	X:map(cint,X),
+	/*Check that the ASCII code for every character in C is in the interval [48,58].*/
+	X:map(lambda([x], 47 < x and x < 58),X),
+	if(member(false,X)) then 
+		(return(false))
+	else return(true));
+
+/*
+Type conversion from string to int.
+NOTE: Assumes that the input is a string representing a number.
+
+@param[in]	C	The string.
+
+@return			The integer that C represents.
+*/
+CONVINT(C):=block([X, INT],
+	INT:0, X:charlist(C),
+	/*We will analyse the ASCII codes for each character in C.*/
+	X:map(cint,X),
+	/*If c is a character representing a number, then the number is*/
+	/*is the ASCII code of c minus 48.*/
+	X:map(lambda([x], x - 48),X),
+	/*Convert a list of digits into a number.*/
+	for i:1 thru length(X) do(
+		INT: INT + X[i]*10^(length(X)-i)),
+	return(INT));
+			
+/*
+Function converts a string of the form "n", where "n" is a natural number,
+into a string of the form "(1 + ... + 1)."
+
+@param[in]	N	The string representing the number.
+
+@return			False if conversion failed, and otherwise a string of the form (1+...+1)
+				(with extra brackets).
+*/
+convertNumberToTerm(N):=block([number, plus],
+	/*First check that N is actually a string.*/
+	if (stringp(N) = false) then (return(false)),
+	/*Then check that N is representing a number.*/
+	if (INTEGERP(N) = false) then (return(false)),
+	/*Type conversion from string to int.*/
+	number: CONVINT(N),
+	/*Convert N to "(1+...+1)".*/
+	plus: "1",
+	for i:2 thru number do (
+		plus: sconcat("(",plus,"+","1)")),
+	return(plus));
+	
+/*
+Function converts a string of the form "x^n", where "n" is a natural number,
+into a string of the form "(x*...*x)."
+
+@param[in]	x	String representing the variable in "x^n".
+@param[in]	n	String representing the power in "x^n".
+
+@return			False if conversion failed, and otherwise a string of the form (x*...*x)
+				(with extra brackets).
+*/
+convertMonomialToTerm(x,n):=block([number, term],
+	/*First check that x and n are actually strings.*/
+	if (stringp(x) = false or stringp(n) = false) then (return(false)),
+	/*Then check that n is representing a number.*/
+	if (INTEGERP(n) = false) then (return(false)),
+	/*Type conversion from string to int.*/
+	number: CONVINT(n),
+	/*Convert x^n to "(x*...*x)".*/
+	term: "x",
+	for i:2 thru number do (
+		term: sconcat("(",term,"*",x,")")),
+	return(term));
+	
