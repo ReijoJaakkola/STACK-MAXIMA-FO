@@ -232,7 +232,7 @@ INTEGERP(C):=block([X],
 	X:charlist(C),
 	/*We will analyse the ASCII codes for each character in C.*/
 	X:map(cint,X),
-	/*Check that the ASCII code for every character in C is in the interval [48,58].*/
+	/*Check that the ASCII code for every character in C is in the interval [48,57].*/
 	X:map(lambda([x], 47 < x and x < 58),X),
 	if(member(false,X)) then 
 		(return(false))
@@ -281,7 +281,7 @@ convertNumberToTerm(N):=block([number, plus],
 	return(plus));
 	
 /*
-Function converts a string of the form "x^n", where "n" is a natural number,
+Function converts a string of the form "x^n", where "n" is a natural number > 0,
 into a string of the form "(x*...*x)."
 
 @param[in]	x	String representing the variable in "x^n".
@@ -303,3 +303,46 @@ convertMonomialToTerm(x,n):=block([number, term],
 		term: sconcat("(",term,"*",x,")")),
 	return(term));
 	
+/*
+Function that applies recursively convertNumberToTerm and
+convertMonomialToTerm to a given polynomial given as a string.
+
+NOTE: THIS FUNCTIONS HAS A VERY LAZY DESIGN AND THUS IT SHOULD BE USED
+      ONLY IF YOU KNOW WHAT YOU ARE DOING. HERE IS A LIST OF ASSUMPTIONS THAT
+	  WE MAKE:
+	  1) THE POLYNOMIAL HAS A CORRECT SYNTAX.
+	  2) THERE ARE NO VARIABLES THAT HAVE LENGTH GREATER THAN 0NE.
+	  3) THERE ARE NO POWERS THAT HAVE LENGTH GREATER THAN ONE.
+
+@param[in]	f   The polynomial that is given as a string.
+
+@return         Result of applying the two functions recursively
+				to f.
+*/
+replaceTermsInPolynomial(f):=block([Index, T1, T2],
+	/*First check that f is a string.*/
+	if (stringp(f) = false) then (return(false)),
+	/*Try to find the innermost operator.*/
+	Index: InnerMostOperator(f),
+	if (Index = -1) then (
+		/*Check first whether this is an integer.*/
+		if (INTEGERP(f) = true) then (
+			/*Apply convertNumberToTerm.*/
+			return(convertNumberToTerm(f))
+		)
+		/*No innermost operator and is not an integer => this is a monomial.*/
+		/*Check whether the lenght of f is three.*/
+		else if (slength(f) = 3) then (
+			/*Apply convert monomial to term.*/
+			return(convertMonomialToTerm(charat(f,1), charat(f,3))))
+		else (
+			/*Just return f.*/
+			return(f)))
+	else (
+		/*Apply this function recursively.*/
+		T1: replaceTermsInPolynomial(substring(T, 2, Index)),
+		T2: replaceTermsInPolynomial(substring(T, Index + 1, slength(T))),
+		if (charat(T, Index) = "+") then (
+			return(sconcat("(",T1,"+",T2,")")))
+		else (
+			return(sconcat("(",T1,"*",T2,")")))));
