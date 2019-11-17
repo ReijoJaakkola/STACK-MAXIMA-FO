@@ -22,7 +22,9 @@ a given variable. Also the atomic formula will not contain the same variable twi
 
 @return					Random atomic formula which contains VARIABLE.
 */
-RandomAtomicFormulaWithVariable(VARIABLE, VARIABLES, VOCABULARY):=block([],
+RandomAtomicFormulaWithVariable(VARIABLE, VARIABLES, VOCABULARY):=block([VARIABLES_COPY],
+	/*Make a copy out of the VARIABLES*/
+	VARIABLES_COPY: VARIABLES,
 	/*Select randomly an index. The symbol for the atomic formula*/
 	/*will be the symbol in that position in VOCABULARY.*/
 	/*Note that in MAXIMA indexing starts at 1, but random(n)*/
@@ -46,10 +48,10 @@ RandomAtomicFormulaWithVariable(VARIABLE, VARIABLES, VOCABULARY):=block([],
 		)
 		else (
 			/*Similarly how we selected the symbol, select a random variable.*/
-			randomIndex: random(length(VARIABLES)) + 1,
-			VAR: VARIABLES[randomIndex],
+			randomIndex: random(length(VARIABLES_COPY)) + 1,
+			VAR: VARIABLES_COPY[randomIndex],
 			/*Remove the variable from the list.*/
-			VARIABLES: delete(VAR, VARIABLES)
+			VARIABLES_COPY: delete(VAR, VARIABLES_COPY)
 		),
 		if (i = 1) then (
 			AtomicFormula: sconcat(AtomicFormula,VAR)
