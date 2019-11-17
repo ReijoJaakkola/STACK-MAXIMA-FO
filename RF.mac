@@ -73,6 +73,8 @@ Also the atomic formula will not contain the same variable twice.
 @return					Random atomic formula.
 */
 RandomAtomicFormula(VARIABLES, VOCABULARY):=block([],
+	/*Make a copy out of the VARIABLES*/
+	VARIABLES_COPY: VARIABLES,
 	/*Select randomly an index. The symbol for the atomic formula*/
 	/*will be the symbol in that position in VOCABULARY.*/
 	/*Note that in MAXIMA indexing starts at 1, but random(n)*/
@@ -83,15 +85,15 @@ RandomAtomicFormula(VARIABLES, VOCABULARY):=block([],
 	AtomicFormula: sconcat(Symbol,"("),
 	for i:1 thru assoc(Symbol, VOC) do (
 		/*Similarly how we selected the symbol, select a random variable.*/
-		randomIndex: random(length(VARIABLES)) + 1,
+		randomIndex: random(length(VARIABLES_COPY)) + 1,
 		if not(i = 1) then (
-			AtomicFormula: sconcat(AtomicFormula,",",VARIABLES[randomIndex])
+			AtomicFormula: sconcat(AtomicFormula,",",VARIABLES_COPY[randomIndex])
 		)
 		else (
-			AtomicFormula: sconcat(AtomicFormula,VARIABLES[randomIndex])
+			AtomicFormula: sconcat(AtomicFormula,VARIABLES_COPY[randomIndex])
 		),
 		/*Remove the variable from the list.*/
-		VARIABLES: delete(VARIABLES[randomIndex], VARIABLES)
+		VARIABLES_COPY: delete(VARIABLES_COPY[randomIndex], VARIABLES_COPY)
 	),
 	AtomicFormula: sconcat(AtomicFormula, ")"),
 	return(AtomicFormula));
