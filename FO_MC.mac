@@ -1,0 +1,109 @@
+/*
+Code for performing model checking for FO^4-formulas.
+@Reijo Jaakkola
+@reijo.jaakkola@tuni.fi
+*/
+
+/*
+As usual, connectives are denoted by
+A = forall, E = exists, ! = not, & = and, | = or, ->, if...then, <-> = iff
+*/
+
+/*
+Function which removes all the given characters from a given string.
+Does not affect the original string.
+
+@param[in]	CHAR	Characters that should be removed.
+@param[in]	S		String for which we want to do the clearing.
+
+@return				Cleared string.
+*/
+ClearString(CHAR,S):=block([],
+	for i:1 thru length(CHAR) do (
+		S: sremove(CHAR[i],S)
+	),
+	return(S));
+
+/*
+Function which checks whether a given formula contains any logical constants.
+
+@param[in]	F		The given formula.
+
+@return				True iff F has no logical constants.
+*/
+NotContainsLogicalConstants(F):=block([Formula],
+	cleanedFormula: ClearString(["A","E","!","&","|","->","<->"],F),
+	if (slength(cleanedFormula) = slength(F)) then (return(true))
+	else (return(false)));
+
+/*
+Function for finding the index where the innermost (binary) connective
+in a formula begins.
+
+@param[in]	F	Formula for which we whish to find the innermost operation.
+
+@return			Index for the innermost operator, or -1 if none found.
+*/
+/*Funktio joka etsii kaavan sisimman konnektiivin*/
+InnerMostOperator(F) := block([index, c],
+	index: -1,
+	c: 0,
+	for i:1 thru slength(F) do (
+		if(charat(F,i)="(") then (  
+			c: c + 1
+		)
+		else if(charat(F,i)=")") then (
+			c: c - 1
+		)
+		/*Inner most operation is located in the place where c = 1.*/
+		else if((charat(F,i)="&" or charat(F,i)="|" or charat(F,i)="-" or charat(F,i)="<") and c=1) then (
+			index: i
+		)
+   ),
+   return(index));
+
+/*
+Function which returns the set of variables that appear in a atomic formula
+in the same order that they appear in the formula with possibly containing duplicates.
+
+Assumes that the given string really represents correctly an atomic formula.
+Assumes that all relational symbols have length one. Same for variables.
+
+@param[in]	F	The given formula.
+
+@return			List of variables that appear in F.
+*/
+VariablesAtomicFormula(F):=block([FREE, i],
+	/*If the length of F is 3, then it is of the form x=y*/
+	if(slength(F)=3) then
+	(return([charat(F,1),charat(F,3)]))
+	else(
+		FREE: makelist(0,0),
+		/*charat(F,1) = relation symbol, charat(F,2) = "(", so start at i = 3.*/
+		i:3,
+		while(not(charat(F,i)=")")) do
+		/*Everything that is not comma is treated as a variable.*/
+		(if(not(charat(F,i) = ",")) then
+			(push(charat(F,i),FREE)),
+		i:i+1),
+		FREE: reverse(FREE),
+		return(FREE)));
+		
+/*
+We treat models as tuples of the form
+	[A,R_1^A,...,R_n^A],
+where A is a set and each R_i^A is of the form 
+	{[a_1^1,...,a_m^1],...,[a_1^k,...,a_m^k]}.
+*/
+
+/*
+Function which returns the interpretation for a given
+relation symbol in a given model.
+
+@param[in]	Model
+@param[in]	R		The relational symbol.
+
+@return 			The interpretation for the symbol R or false if there is no interpretation
+                    for that symbol.
+*/
+InterpretationFor(Model,R):=block([], return(assoc(R,Model[2])));
