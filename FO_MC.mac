@@ -44,7 +44,6 @@ in a formula begins.
 
 @return			Index for the innermost operator, or -1 if none found.
 */
-/*Funktio joka etsii kaavan sisimman konnektiivin*/
 InnerMostOperator(F) := block([index, c],
 	index: -1,
 	c: 0,
@@ -55,9 +54,11 @@ InnerMostOperator(F) := block([index, c],
 		else if(charat(F,i)=")") then (
 			c: c - 1
 		)
-		/*Inner most operation is located in the place where c = 1.*/
+		/* Inner most operation is located in the place where c = 1. */
 		else if((charat(F,i)="&" or charat(F,i)="|" or charat(F,i)="-" or charat(F,i)="<") and c=1) then (
-			index: i
+			index: i,
+			/* Here to end the loop (why break does not work???). */
+			i: slength(F)
 		)
    ),
    return(index));
@@ -172,3 +173,80 @@ IsAtomicFormulaTrue(Model, Assignment, AtomicFormula):=block([],
 		(return(1))
 		else
 		(return(0))));
+		
+/*
+Function for verifying whether a given assignment for a given model satisfies a given
+FO^4-formula in that model.
+
+Note that the function returns either 0 or 1. This makes model checking calculations
+easier for more complex formulas.
+
+@param[in]	Model
+@param[in]	Assignment
+@param[in]  Formula
+
+@return						1 if the assignment satisfies the formula, and 0 otherwise.
+*/
+IsFormulaTrue(Model, Assignment, Formula):=block([IsTrue, ModelDomain, D, u, w],
+	/* If the formula does not contain logical constants, then it must
+	be an atomic formula. We have a different function for that. */
+	if(NotContainsLogicalConstants(Formula)) then
+	(return(IsAtomicFormulaTrue(Model, Assignment, Formula)))
+	/* Next case is the case of negation. This is simple: return 1 - the result of recursive 
+	call without the negation. */
+	else if(charat(Formula,1)="!") then
+	(return(1-(IsFormulaTrue(Model, Assignment, sremovefirst("!",Formula)))))
+	/* Next we have the cases for universal and existential quantification.
+    First universal quantification. */
+	else if(charat(Formula,1)="A") then(
+		IsTrue: 1,
+		/* By assumption we know that the assignment contains already
+        an intepretation for the variable being quantified over. So remove that pair
+        from the assignment. */
+		previousValue: assoc(charat(Formula,2),Assignment),
+		Assignment: delete([charat(Formula,2), previousValue], Assignment),
+		/* Recall that a model is a pair where the first part is the domain.
+        Since it is a set, we should first listify it. */
+		ModelDomain: listify(Model[1]),
+		/* Verify that every element of the model satisfy the next subformula. */
+		for i:1 thru length(ModelDomain) do(
+			if(IsFormulaTrue(Model, cons([charat(Formula,2),ModelDomain[i]],Assignment),substring(Formula,3,slength(Formula)+1))=0) then
+			(IsTrue: 0)),
+		return(IsTrue))
+	/* Next case is the existential quantification. */
+	else if(charat(Formula,1)="E") then(
+		IsTrue: 0,
+		/* By assumption we know that the assignment contains already
+        an intepretation for the variable being quantified over. So remove that pair
+        from the assignment. */
+		previousValue: assoc(charat(Formula,2),Assignment),
+		Assignment: delete([charat(Formula,2), previousValue], Assignment),
+		/* Recall that a model is a pair where the first part is the domain.
+        Since it is a set, we should first listify it. */
+		ModelDomain: listify(Model[1]),
+		/* Verify that at least one element of the domain satisfies the formula. */
+		for i:1 thru length(ModelDomain) do(
+			if(IsFormulaTrue(Model, cons([charat(Formula,2),ModelDomain[i]],Assignment),substring(Formula,3,slength(Formula)+1))=1) then
+			(IsTrue: 1)),
+		return(IsTrue))
+	else(
+	    /* Rest of the cases are the different binary connectives. These should be
+        self-explanatory: calculate the values recursively for the two subformulas
+        and then use those to determine the truth value of the original formula. */
+		D:InnerMostOperator(Formula),
+		if(charat(Formula,D)="|") then (
+			u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
+			w:IsFormulaTrue(Model, Assignment, substring(Formula,D+1,slength(Formula))),
+			return(u+w-u*w))
+		else if(charat(Formula,D)="&") then (
+			u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
+			w:IsFormulaTrue(Model, Assignment, substring(Formula,D+1,slength(Formula))),
+			return(u*w))
+		else if(charat(Formula,D)="-") then (
+			u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
+			w:IsFormulaTrue(Model, Assignment, substring(Formula,D+2,slength(Formula))),
+			return(1-u+w-(1-u)*w))
+		else (
+			u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
+			w:IsFormulaTrue(Model, Assignment, substring(Formula,D+3,slength(Formula))),
+			return((1-u+w-(1-u)*w)*(1+u-w-u*(1-w))))));
