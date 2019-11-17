@@ -1,5 +1,5 @@
 /*
-Code for performing model checking for FO^4-formulas.
+Code for performing model checking for FO^4-formulas (four variable fragment of FO).
 @Reijo Jaakkola
 @reijo.jaakkola@tuni.fi
 */
@@ -90,10 +90,14 @@ VariablesAtomicFormula(F):=block([FREE, i],
 		return(FREE)));
 		
 /*
-We treat models as tuples of the form
+We assume for the rest of code that every relational symbol
+has length one.
+
+In the rest of the code we treat models as tuples of the form
 	[A,R_1^A,...,R_n^A],
 where A is a set and each R_i^A is of the form 
-	{[a_1^1,...,a_m^1],...,[a_1^k,...,a_m^k]}.
+	[R,{[a_1^1,...,a_m^1],...,[a_1^k,...,a_m^k]}].
+Note that in particular our vocabulary is purely relational.
 */
 
 /*
@@ -107,3 +111,64 @@ relation symbol in a given model.
                     for that symbol.
 */
 InterpretationFor(Model,R):=block([], return(assoc(R,Model[2])));
+
+/*
+Since we are concentrating on FO^4, we fix that the set of variables that can appear
+are from the set
+	{x,y,z,w}
+An assignment for model M will be understood in the rest of the code to be of the form
+	[[x,a],[y,b],[z,c],[w,d]],
+where a,b,c,d are from the domain of M (i.e. with previous notation from A). In particular
+we assume that for the rest of the code that assignments always interpretate every possible variable
+(note that by the locality of FO this is possible). Also, since assignments are basically
+dictionaries, to obtain the interpretation for variable, say x,
+we can just call assoc(x,Assignment).
+*/
+
+/*
+Function for verifying whether a given assignment for a given model satisfies a given
+atomic formula in that model.
+
+Note that the function returns either 0 or 1. This makes model checking calculations
+easier for more complex formulas.
+
+@param[in]	Model
+@param[in]	Assignment
+@param[in]  AtomicFormula
+
+@return						1 if the assignment satisfies the atomic formula, and 0 otherwise.
+*/
+IsAtomicFormulaTrue(Model, Assignment, AtomicFormula):=block([],
+	/* First get the variables that appear in the atomic formula
+	in the order that they appear. */
+	tupleOfVariables: VariablesAtomicFormula(AtomicFormula),
+	/* Check first whether we are dealing with an identity. */
+	if(slength(AtomicFormula)=3) then(
+		/* Identity claims contain two variables (which can be the same). */
+		firstVar: tupleOfVariables[1],
+		secondVar: tupleOfVariables[2],
+		/* Verify that the two variables receive the same interpretation. */
+		if(is(assoc(firstVar,Assignment)=assoc(secondVar,Assignment))) then
+		(return(1))
+		else
+		(return(0)))
+	else(
+		/* Obtain the relational symbol that appears in the atomic formula.
+		since the length of relation symbols is one (by assumption), we
+		know where to find the relational symbol. */
+		symbol: charat(AtomicFormula,1),
+		/* Obtain the interpretation for the relational symbol. */
+		interpretationForSymbol: InterpretationFor(Model, symbol),
+		/* From the assignment and the tupleOfVariables obtain the tuple of elements 
+		of the given model that represents the interpretation under the given
+        assignment for the variables that appear in the atomic formula. */
+		interpretationForTuple: makelist(0,0),
+		for i:1 thru length(tupleOfVariables) do(
+			interpretationForTuple: push(assoc(tupleOfVariables[i],Assignment),interpretationForTuple)),
+		/* Since we used push, we have to reverse the tuple to get matching interpretation. */
+		interpretationForTuple: reverse(interpretationForTuple),
+		/* Check whether interpretationForTuple belongs to the interpretation for the relational symbol. */
+		if(elementp(interpretationForTuple,interpretationForSymbol)) then
+		(return(1))
+		else
+		(return(0))));
