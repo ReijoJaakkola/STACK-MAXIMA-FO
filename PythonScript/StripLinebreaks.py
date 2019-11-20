@@ -18,6 +18,7 @@ try:
 	output = str()
 	for line in strippedLines:
 		output += line
+	output = output.replace(';','\n')
 	with open(sys.argv[1],'w') as outputFile:
 		outputFile.write(output)
 except Exception as e:
