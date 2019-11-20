@@ -13,53 +13,53 @@ A = forall, E = exists, ! = not, & = and, | = or, ->, if...then, <-> = iff
 Function which removes all the given characters from a given string.
 Does not affect the original string.
 
-@param[in]	CHAR	Characters that should be removed.
-@param[in]	S		String for which we want to do the clearing.
+@param[in]  CHAR    Characters that should be removed.
+@param[in]  S       String for which we want to do the clearing.
 
-@return				Cleared string.
+@return             Cleared string.
 */
 ClearString(CHAR,S):=block([],
-	for i:1 thru length(CHAR) do (
-		S: sremove(CHAR[i],S)
-	),
-	return(S));
+    for i:1 thru length(CHAR) do (
+        S: sremove(CHAR[i],S)
+    ),
+    return(S));
 
 /*
 Function which checks whether a given formula contains any logical constants.
 
-@param[in]	F		The given formula.
+@param[in]  F       The given formula.
 
-@return				True iff F has no logical constants.
+@return             True iff F has no logical constants.
 */
 NotContainsLogicalConstants(F):=block([Formula],
-	cleanedFormula: ClearString(["A","E","!","&","|","->","<->"],F),
-	if (slength(cleanedFormula) = slength(F)) then (return(true))
-	else (return(false)));
+    cleanedFormula: ClearString(["A","E","!","&","|","->","<->"],F),
+    if (slength(cleanedFormula) = slength(F)) then (return(true))
+    else (return(false)));
 
 /*
 Function for finding the index where the innermost (binary) connective
 in a formula begins.
 
-@param[in]	F	Formula for which we whish to find the innermost operation.
+@param[in]  F   Formula for which we whish to find the innermost operation.
 
-@return			Index for the innermost operator, or -1 if none found.
+@return         Index for the innermost operator, or -1 if none found.
 */
 InnerMostOperator(F) := block([index, c],
-	index: -1,
-	c: 0,
-	for i:1 thru slength(F) do (
-		if(charat(F,i)="(") then (  
-			c: c + 1
-		)
-		else if(charat(F,i)=")") then (
-			c: c - 1
-		)
-		/* Inner most operation is located in the place where c = 1. */
-		else if((charat(F,i)="&" or charat(F,i)="|" or charat(F,i)="-" or charat(F,i)="<") and c=1) then (
-			index: i,
-			/* Here to end the loop (why break does not work???). */
-			i: slength(F)
-		)
+    index: -1,
+    c: 0,
+    for i:1 thru slength(F) do (
+        if(charat(F,i)="(") then (  
+            c: c + 1
+        )
+        else if(charat(F,i)=")") then (
+            c: c - 1
+        )
+        /* Inner most operation is located in the place where c = 1. */
+        else if((charat(F,i)="&" or charat(F,i)="|" or charat(F,i)="-" or charat(F,i)="<") and c=1) then (
+            index: i,
+            /* Here to end the loop (why break does not work???). */
+            i: slength(F)
+        )
    ),
    return(index));
 
@@ -70,34 +70,34 @@ in the same order that they appear in the formula with possibly containing dupli
 Assumes that the given string really represents correctly an atomic formula.
 Assumes that all relational symbols have length one. Same for variables.
 
-@param[in]	F	The given formula.
+@param[in]  F   The given formula.
 
-@return			List of variables that appear in F.
+@return         List of variables that appear in F.
 */
 VariablesAtomicFormula(F):=block([FREE, i],
-	/*If the length of F is 3, then it is of the form x=y*/
-	if(slength(F)=3) then
-	(return([charat(F,1),charat(F,3)]))
-	else(
-		FREE: makelist(0,0),
-		/*charat(F,1) = relation symbol, charat(F,2) = "(", so start at i = 3.*/
-		i:3,
-		while(not(charat(F,i)=")")) do
-		/*Everything that is not comma is treated as a variable.*/
-		(if(not(charat(F,i) = ",")) then
-			(push(charat(F,i),FREE)),
-		i:i+1),
-		FREE: reverse(FREE),
-		return(FREE)));
-		
+    /*If the length of F is 3, then it is of the form x=y*/
+    if(slength(F)=3) then
+    (return([charat(F,1),charat(F,3)]))
+    else(
+        FREE: makelist(0,0),
+        /*charat(F,1) = relation symbol, charat(F,2) = "(", so start at i = 3.*/
+        i:3,
+        while(not(charat(F,i)=")")) do
+        /*Everything that is not comma is treated as a variable.*/
+        (if(not(charat(F,i) = ",")) then
+            (push(charat(F,i),FREE)),
+        i:i+1),
+        FREE: reverse(FREE),
+        return(FREE)));
+        
 /*
 We assume for the rest of code that every relational symbol
 has length one.
 
 In the rest of the code we treat models as tuples of the form
-	[A,R_1^A,...,R_n^A],
+    [A,R_1^A,...,R_n^A],
 where A is a set and each R_i^A is of the form 
-	[R,{[a_1^1,...,a_m^1],...,[a_1^k,...,a_m^k]}].
+    [R,{[a_1^1,...,a_m^1],...,[a_1^k,...,a_m^k]}].
 Note that in particular our vocabulary is purely relational.
 */
 
@@ -105,10 +105,10 @@ Note that in particular our vocabulary is purely relational.
 Function which returns the interpretation for a given
 relation symbol in a given model.
 
-@param[in]	Model
-@param[in]	R		The relational symbol.
+@param[in]  Model
+@param[in]  R       The relational symbol.
 
-@return 			The interpretation for the symbol R or false if there is no interpretation
+@return             The interpretation for the symbol R or false if there is no interpretation
                     for that symbol.
 */
 InterpretationFor(Model,R):=block([], return(assoc(R,Model[2])));
@@ -116,9 +116,9 @@ InterpretationFor(Model,R):=block([], return(assoc(R,Model[2])));
 /*
 Since we are concentrating on FO^4, we fix that the set of variables that can appear
 are from the set
-	{x,y,z,w}
+    {x,y,z,w}
 An assignment for model M will be understood in the rest of the code to be of the form
-	[[x,a],[y,b],[z,c],[w,d]],
+    [[x,a],[y,b],[z,c],[w,d]],
 where a,b,c,d are from the domain of M (i.e. with previous notation from A). In particular
 we assume that for the rest of the code that assignments always interpretate every possible variable
 (note that by the locality of FO this is possible). Also, since assignments are basically
@@ -133,47 +133,47 @@ atomic formula in that model.
 Note that the function returns either 0 or 1. This makes model checking calculations
 easier for more complex formulas.
 
-@param[in]	Model
-@param[in]	Assignment
+@param[in]  Model
+@param[in]  Assignment
 @param[in]  AtomicFormula
 
-@return						1 if the assignment satisfies the atomic formula, and 0 otherwise.
+@return                     1 if the assignment satisfies the atomic formula, and 0 otherwise.
 */
 IsAtomicFormulaTrue(Model, Assignment, AtomicFormula):=block([],
-	/* First get the variables that appear in the atomic formula
-	in the order that they appear. */
-	tupleOfVariables: VariablesAtomicFormula(AtomicFormula),
-	/* Check first whether we are dealing with an identity. */
-	if(slength(AtomicFormula)=3) then(
-		/* Identity claims contain two variables (which can be the same). */
-		firstVar: tupleOfVariables[1],
-		secondVar: tupleOfVariables[2],
-		/* Verify that the two variables receive the same interpretation. */
-		if(is(assoc(firstVar,Assignment)=assoc(secondVar,Assignment))) then
-		(return(1))
-		else
-		(return(0)))
-	else(
-		/* Obtain the relational symbol that appears in the atomic formula.
-		since the length of relation symbols is one (by assumption), we
-		know where to find the relational symbol. */
-		symbol: charat(AtomicFormula,1),
-		/* Obtain the interpretation for the relational symbol. */
-		interpretationForSymbol: InterpretationFor(Model, symbol),
-		/* From the assignment and the tupleOfVariables obtain the tuple of elements 
-		of the given model that represents the interpretation under the given
+    /* First get the variables that appear in the atomic formula
+    in the order that they appear. */
+    tupleOfVariables: VariablesAtomicFormula(AtomicFormula),
+    /* Check first whether we are dealing with an identity. */
+    if(slength(AtomicFormula)=3) then(
+        /* Identity claims contain two variables (which can be the same). */
+        firstVar: tupleOfVariables[1],
+        secondVar: tupleOfVariables[2],
+        /* Verify that the two variables receive the same interpretation. */
+        if(is(assoc(firstVar,Assignment)=assoc(secondVar,Assignment))) then
+        (return(1))
+        else
+        (return(0)))
+    else(
+        /* Obtain the relational symbol that appears in the atomic formula.
+        since the length of relation symbols is one (by assumption), we
+        know where to find the relational symbol. */
+        symbol: charat(AtomicFormula,1),
+        /* Obtain the interpretation for the relational symbol. */
+        interpretationForSymbol: InterpretationFor(Model, symbol),
+        /* From the assignment and the tupleOfVariables obtain the tuple of elements 
+        of the given model that represents the interpretation under the given
         assignment for the variables that appear in the atomic formula. */
-		interpretationForTuple: makelist(0,0),
-		for i:1 thru length(tupleOfVariables) do(
-			interpretationForTuple: push(assoc(tupleOfVariables[i],Assignment),interpretationForTuple)),
-		/* Since we used push, we have to reverse the tuple to get matching interpretation. */
-		interpretationForTuple: reverse(interpretationForTuple),
-		/* Check whether interpretationForTuple belongs to the interpretation for the relational symbol. */
-		if(elementp(interpretationForTuple,interpretationForSymbol)) then
-		(return(1))
-		else
-		(return(0))));
-		
+        interpretationForTuple: makelist(0,0),
+        for i:1 thru length(tupleOfVariables) do(
+            interpretationForTuple: push(assoc(tupleOfVariables[i],Assignment),interpretationForTuple)),
+        /* Since we used push, we have to reverse the tuple to get matching interpretation. */
+        interpretationForTuple: reverse(interpretationForTuple),
+        /* Check whether interpretationForTuple belongs to the interpretation for the relational symbol. */
+        if(elementp(interpretationForTuple,interpretationForSymbol)) then
+        (return(1))
+        else
+        (return(0))));
+        
 /*
 Function for verifying whether a given assignment for a given model satisfies a given
 FO^4-formula in that model.
@@ -181,136 +181,136 @@ FO^4-formula in that model.
 Note that the function returns either 0 or 1. This makes model checking calculations
 easier for more complex formulas.
 
-@param[in]	Model
-@param[in]	Assignment
+@param[in]  Model
+@param[in]  Assignment
 @param[in]  Formula
 
-@return						1 if the assignment satisfies the formula, and 0 otherwise.
+@return                     1 if the assignment satisfies the formula, and 0 otherwise.
 */
 IsFormulaTrue(Model, Assignment, Formula):=block([IsTrue, ModelDomain, D, u, w],
-	/* If the formula does not contain logical constants, then it must
-	be an atomic formula. We have a different function for that. */
-	if(NotContainsLogicalConstants(Formula)) then
-	(return(IsAtomicFormulaTrue(Model, Assignment, Formula)))
-	/* Next case is the case of negation. This is simple: return 1 - the result of recursive 
-	call without the negation. */
-	else if(charat(Formula,1)="!") then
-	(return(1-(IsFormulaTrue(Model, Assignment, sremovefirst("!",Formula)))))
-	/* Next we have the cases for universal and existential quantification.
+    /* If the formula does not contain logical constants, then it must
+    be an atomic formula. We have a different function for that. */
+    if(NotContainsLogicalConstants(Formula)) then
+    (return(IsAtomicFormulaTrue(Model, Assignment, Formula)))
+    /* Next case is the case of negation. This is simple: return 1 - the result of recursive 
+    call without the negation. */
+    else if(charat(Formula,1)="!") then
+    (return(1-(IsFormulaTrue(Model, Assignment, sremovefirst("!",Formula)))))
+    /* Next we have the cases for universal and existential quantification.
     First universal quantification. */
-	else if(charat(Formula,1)="A") then(
-		IsTrue: 1,
-		/* By assumption we know that the assignment contains already
+    else if(charat(Formula,1)="A") then(
+        IsTrue: 1,
+        /* By assumption we know that the assignment contains already
         an intepretation for the variable being quantified over. So remove that pair
         from the assignment. */
-		previousValue: assoc(charat(Formula,2),Assignment),
-		Assignment: delete([charat(Formula,2), previousValue], Assignment),
-		/* Recall that a model is a pair where the first part is the domain.
+        previousValue: assoc(charat(Formula,2),Assignment),
+        Assignment: delete([charat(Formula,2), previousValue], Assignment),
+        /* Recall that a model is a pair where the first part is the domain.
         Since it is a set, we should first listify it. */
-		ModelDomain: listify(Model[1]),
-		/* Verify that every element of the model satisfy the next subformula. */
-		for i:1 thru length(ModelDomain) do(
-			if(IsFormulaTrue(Model, cons([charat(Formula,2),ModelDomain[i]],Assignment),substring(Formula,3,slength(Formula)+1))=0) then
-			(IsTrue: 0)),
-		return(IsTrue))
-	/* Next case is the existential quantification. */
-	else if(charat(Formula,1)="E") then(
-		IsTrue: 0,
-		/* By assumption we know that the assignment contains already
+        ModelDomain: listify(Model[1]),
+        /* Verify that every element of the model satisfy the next subformula. */
+        for i:1 thru length(ModelDomain) do(
+            if(IsFormulaTrue(Model, cons([charat(Formula,2),ModelDomain[i]],Assignment),substring(Formula,3,slength(Formula)+1))=0) then
+            (IsTrue: 0)),
+        return(IsTrue))
+    /* Next case is the existential quantification. */
+    else if(charat(Formula,1)="E") then(
+        IsTrue: 0,
+        /* By assumption we know that the assignment contains already
         an intepretation for the variable being quantified over. So remove that pair
         from the assignment. */
-		previousValue: assoc(charat(Formula,2),Assignment),
-		Assignment: delete([charat(Formula,2), previousValue], Assignment),
-		/* Recall that a model is a pair where the first part is the domain.
+        previousValue: assoc(charat(Formula,2),Assignment),
+        Assignment: delete([charat(Formula,2), previousValue], Assignment),
+        /* Recall that a model is a pair where the first part is the domain.
         Since it is a set, we should first listify it. */
-		ModelDomain: listify(Model[1]),
-		/* Verify that at least one element of the domain satisfies the formula. */
-		for i:1 thru length(ModelDomain) do(
-			if(IsFormulaTrue(Model, cons([charat(Formula,2),ModelDomain[i]],Assignment),substring(Formula,3,slength(Formula)+1))=1) then
-			(IsTrue: 1)),
-		return(IsTrue))
-	else(
-	    /* Rest of the cases are the different binary connectives. These should be
+        ModelDomain: listify(Model[1]),
+        /* Verify that at least one element of the domain satisfies the formula. */
+        for i:1 thru length(ModelDomain) do(
+            if(IsFormulaTrue(Model, cons([charat(Formula,2),ModelDomain[i]],Assignment),substring(Formula,3,slength(Formula)+1))=1) then
+            (IsTrue: 1)),
+        return(IsTrue))
+    else(
+        /* Rest of the cases are the different binary connectives. These should be
         self-explanatory: calculate the values recursively for the two subformulas
         and then use those to determine the truth value of the original formula. */
-		D:InnerMostOperator(Formula),
-		if(charat(Formula,D)="|") then (
-			u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
-			w:IsFormulaTrue(Model, Assignment, substring(Formula,D+1,slength(Formula))),
-			return(u+w-u*w))
-		else if(charat(Formula,D)="&") then (
-			u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
-			w:IsFormulaTrue(Model, Assignment, substring(Formula,D+1,slength(Formula))),
-			return(u*w))
-		else if(charat(Formula,D)="-") then (
-			u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
-			w:IsFormulaTrue(Model, Assignment, substring(Formula,D+2,slength(Formula))),
-			return(1-u+w-(1-u)*w))
-		else (
-			u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
-			w:IsFormulaTrue(Model, Assignment, substring(Formula,D+3,slength(Formula))),
-			return((1-u+w-(1-u)*w)*(1+u-w-u*(1-w))))));
+        D:InnerMostOperator(Formula),
+        if(charat(Formula,D)="|") then (
+            u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
+            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+1,slength(Formula))),
+            return(u+w-u*w))
+        else if(charat(Formula,D)="&") then (
+            u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
+            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+1,slength(Formula))),
+            return(u*w))
+        else if(charat(Formula,D)="-") then (
+            u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
+            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+2,slength(Formula))),
+            return(1-u+w-(1-u)*w))
+        else (
+            u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
+            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+3,slength(Formula))),
+            return((1-u+w-(1-u)*w)*(1+u-w-u*(1-w))))));
 
 /*
-@param[in]	List
+@param[in]  List
 
-@return 	List of subtuples of length four.
+@return     List of subtuples of length four.
 */
 subtuples(list):=block([tuples],
-	tuples: makelist(0,0),
-	for i:1 thru length(list) do (
-		for j:1 thru length(list) do (
-			for k:1 thru length(list) do (
-				for l:1 thru length(list) do (
-					tuples: cons([list[i],list[j],list[k],list[l]],tuples))))),
-	return(tuples));
+    tuples: makelist(0,0),
+    for i:1 thru length(list) do (
+        for j:1 thru length(list) do (
+            for k:1 thru length(list) do (
+                for l:1 thru length(list) do (
+                    tuples: cons([list[i],list[j],list[k],list[l]],tuples))))),
+    return(tuples));
 /*
 Evaluate an FO^4 formula over the given model by returning the set of tuples of 
 elements of model that satisfy the formula.
 
-@param[in]	Model
-@param[in]	Formula
+@param[in]  Model
+@param[in]  Formula
 
-@return		List of tuples that satisfie the given formula on the model.
+@return     List of tuples that satisfie the given formula on the model.
 */
 FOQuery(Model, Formula):=block([ModelDomain, tuples, satTuples, assignment],
-	/* Recall that a model is a pair where the first part is the domain.
+    /* Recall that a model is a pair where the first part is the domain.
     Since it is a set, we should first listify it. */
-	ModelDomain: listify(Model[1]),
-	/* Obtain all the subtuples of ModelDomain that have length four. */
-	tuples: subtuples(ModelDomain),
-	/* Initialize the list of satisfying assignments. */
-	satTuples: makelist(0,0),
-	/* Go through all the tuples and check which one of them satisfy the formula. */
-	for i:1 thru length(tuples) do (
-		/* Create an assignment from the tuple. */
-		assignment: [["x",tuples[i][1]],["y",tuples[i][2]],["z",tuples[i][3]],["w",tuples[i][4]]],
-		if (is(IsFormulaTrue(Model, assignment, Formula) = 1)) then (
-			satTuples: cons(tuples[i], satTuples))),
-	return(satTuples));
-	
+    ModelDomain: listify(Model[1]),
+    /* Obtain all the subtuples of ModelDomain that have length four. */
+    tuples: subtuples(ModelDomain),
+    /* Initialize the list of satisfying assignments. */
+    satTuples: makelist(0,0),
+    /* Go through all the tuples and check which one of them satisfy the formula. */
+    for i:1 thru length(tuples) do (
+        /* Create an assignment from the tuple. */
+        assignment: [["x",tuples[i][1]],["y",tuples[i][2]],["z",tuples[i][3]],["w",tuples[i][4]]],
+        if (is(IsFormulaTrue(Model, assignment, Formula) = 1)) then (
+            satTuples: cons(tuples[i], satTuples))),
+    return(satTuples));
+    
 /*
 Lazy version of FOQuery, which returns empty list if there is no satisfying assignment,
 and otherwise a single satisfying assignment.
 
-@param[in]	Model
-@param[in]	Formula
+@param[in]  Model
+@param[in]  Formula
 
-@return					Satisfying assignment, if there is one, and an empty list otherwise.
+@return                 Satisfying assignment, if there is one, and an empty list otherwise.
 */
 LazyFOQuery(Model, Formula):=block([ModelDomain, tuples, satTuple, assignment],
-	/* Recall that a model is a pair where the first part is the domain.
+    /* Recall that a model is a pair where the first part is the domain.
     Since it is a set, we should first listify it. */
-	ModelDomain: listify(Model[1]),
-	/* Obtain all the subtuples of ModelDomain that have length four. */
-	tuples: subtuples(ModelDomain),
-	/* The satisfying assignment. */
-	satTuple: [],
-	/* Go through all the tuples and check which one of them satisfy the formula. */
-	for i:1 thru length(tuples) do (
-		/* Create an assignment from the tuple. */
-		assignment: [["x",tuples[i][1]],["y",tuples[i][2]],["z",tuples[i][3]],["w",tuples[i][4]]],
-		if (is(IsFormulaTrue(Model, assignment, Formula) = 1)) then (
-			satTuple: tuples[i],
-			i: length(tuples))),
-	return(satTuple));
+    ModelDomain: listify(Model[1]),
+    /* Obtain all the subtuples of ModelDomain that have length four. */
+    tuples: subtuples(ModelDomain),
+    /* The satisfying assignment. */
+    satTuple: [],
+    /* Go through all the tuples and check which one of them satisfy the formula. */
+    for i:1 thru length(tuples) do (
+        /* Create an assignment from the tuple. */
+        assignment: [["x",tuples[i][1]],["y",tuples[i][2]],["z",tuples[i][3]],["w",tuples[i][4]]],
+        if (is(IsFormulaTrue(Model, assignment, Formula) = 1)) then (
+            satTuple: tuples[i],
+            i: length(tuples))),
+    return(satTuple));
