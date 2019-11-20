@@ -314,3 +314,29 @@ LazyFOQuery(Model, Formula):=block([ModelDomain, tuples, satTuple, assignment],
             satTuple: tuples[i],
             i: length(tuples))),
     return(satTuple));
+    
+/*
+Variant of FOQuery, where we assume that the only variable of Formula without intepretation
+in the given assignment is the one given as part of the input.
+
+@param[in] Model
+@param[in] Formula 
+@param[in] Assignment
+@param[in] Variable
+
+@return                 Set of intepretations for the given variable which satisfie the formula.
+*/
+SingleFOQuery(Model, Formula, Assignment, Variable):=block([ModelDomain, satElements, extendedAssignment],
+    /* Recall that a model is a pair where the first part is the domain.
+    Since it is a set, we should first listify it. */
+    ModelDomain: listify(Model[1]),
+    /* Satisfying elements of the given model. */
+    satElements: makelist(0,0),
+    /* Go through all the elements of the model. */
+    for i:1 thru length(ModelDomain) do (
+        /* Extend the given assignment. */
+        extendedAssignment: cons([Variable, ModelDomain[i]], Assignment),
+        /* Check whether this new assignment satisfies the formula. */
+        if (is(IsFormulaTrue(Model, extendedAssignment, Formula) = 1)) then (
+            satElements: cons(ModelDomain[i],satElements))),
+    return(satElements));
