@@ -236,19 +236,19 @@ IsFormulaTrue(Model, Assignment, Formula):=block([IsTrue, ModelDomain, D, u, w],
         D:InnerMostOperator(Formula),
         if(charat(Formula,D)="|") then (
             u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
-            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+1,slength(Formula))),
+            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+1,slength(Formula)+1)),
             return(u+w-u*w))
         else if(charat(Formula,D)="&") then (
             u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
-            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+1,slength(Formula))),
+            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+1,slength(Formula)+1)),
             return(u*w))
         else if(charat(Formula,D)="-") then (
             u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
-            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+2,slength(Formula))),
+            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+2,slength(Formula)+1)),
             return(1-u+w-(1-u)*w))
         else (
             u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
-            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+3,slength(Formula))),
+            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+3,slength(Formula)+1)),
             return((1-u+w-(1-u)*w)*(1+u-w-u*(1-w))))));
 
 /*
