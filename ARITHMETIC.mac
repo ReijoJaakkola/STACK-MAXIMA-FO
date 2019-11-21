@@ -44,7 +44,7 @@ RandomArFormulaPolish(CALC,VAR,ZERO):=block([],
         )
         else (
             return(sconcat("*","(",RandomArFormulaPolish(CALC-dice-1,VAR,0),",",RandomArFormulaPolish(dice,VAR,0),")"))
-        )));
+        )))$
         
 /*
 Generate a random arithmetical term in infix notation.
@@ -77,7 +77,7 @@ RandomArFormulaInfix(CALC,VAR):=block([],
         )
         else (
             return(sconcat("(",RandomArFormulaInfix(CALC-dice-1,VAR),"*",RandomArFormulaInfix(dice,VAR),")"))
-        )));
+        )))$
 
 /*
 Function which removes all the given characters from a given string.
@@ -92,7 +92,7 @@ ClearString(CHAR,S):=block([],
     for i:1 thru length(CHAR) do (
         S: sremove(CHAR[i],S)
     ),
-    return(S));
+    return(S))$
 
 /*
 Convert a given term in Polish notation into infix notation.
@@ -148,7 +148,7 @@ ConvertPolishToInfix(T):=block([],
                 /*since we added now a new one.*/
                 counter: counter + 1))),
     /*The resulting formula is the final element in the VAR_STACK.*/
-    return(pop(VAR_STACK)));
+    return(pop(VAR_STACK)))$
 
 /*
 Function for finding the index for the innermost operator
@@ -174,7 +174,7 @@ InnerMostOperator(T) := block([index, c],
             index: i
         )
    ),
-   return(index));
+   return(index))$
 
 /*
 Helper function for converting variables from set {x,y,z,w} and constants
@@ -190,7 +190,7 @@ ConvertVariable(v) := block([],
     else if (v = "z") then (return(z))
     else if (v = "w") then (return(w))
     else if (v = "0") then (return(0))
-    else if (v = "1") then (return(1)));
+    else if (v = "1") then (return(1)))$
 
 /*
 Convert a given term in infix notation into a formula recursively.
@@ -216,7 +216,7 @@ ConvertInfixToFormula(T):=block([T1, T2, IndexOfInnerMostOperator],
         if (charat(T, IndexOfInnerMostOperator) = "+") then (
             return((T1 + T2)))
         else (
-            return((T1 * T2)))));
+            return((T1 * T2)))))$
 
 /*
 Helper function for checking that a given string is 
@@ -236,7 +236,7 @@ INTEGERP(C):=block([X],
     X:map(lambda([x], 47 < x and x < 58),X),
     if(member(false,X)) then 
         (return(false))
-    else return(true));
+    else return(true))$
 
 /*
 Type conversion from string to int.
@@ -256,7 +256,7 @@ CONVINT(C):=block([X, INT],
     /*Convert a list of digits into a number.*/
     for i:1 thru length(X) do(
         INT: INT + X[i]*10^(length(X)-i)),
-    return(INT));
+    return(INT))$
             
 /*
 Function converts a string of the form "n", where "n" is a natural number,
@@ -278,7 +278,7 @@ convertNumberToTerm(N):=block([number, plus],
     plus: "1",
     for i:2 thru number do (
         plus: sconcat("(",plus,"+","1)")),
-    return(plus));
+    return(plus))$
     
 /*
 Function converts a string of the form "x^n", where "n" is a natural number > 0,
@@ -301,7 +301,7 @@ convertMonomialToTerm(x,n):=block([number, term],
     term: "x",
     for i:2 thru number do (
         term: sconcat("(",term,"*",x,")")),
-    return(term));
+    return(term))$
     
 /*
 Function that applies recursively convertNumberToTerm and
@@ -345,4 +345,4 @@ replaceTermsInPolynomial(f):=block([Index, T1, T2],
         if (charat(T, Index) = "+") then (
             return(sconcat("(",T1,"+",T2,")")))
         else (
-            return(sconcat("(",T1,"*",T2,")")))));
+            return(sconcat("(",T1,"*",T2,")")))))$

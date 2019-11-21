@@ -22,7 +22,7 @@ ClearString(CHAR,S):=block([],
     for i:1 thru length(CHAR) do (
         S: sremove(CHAR[i],S)
     ),
-    return(S));
+    return(S))$
 
 /*
 Function which checks whether a given formula contains any logical constants.
@@ -34,7 +34,7 @@ Function which checks whether a given formula contains any logical constants.
 NotContainsLogicalConstants(F):=block([Formula],
     cleanedFormula: ClearString(["A","E","!","&","|","->","<->"],F),
     if (slength(cleanedFormula) = slength(F)) then (return(true))
-    else (return(false)));
+    else (return(false)))$
 
 /*
 Function for finding the index where the innermost (binary) connective
@@ -61,7 +61,7 @@ InnerMostOperator(F) := block([index, c],
             i: slength(F)
         )
    ),
-   return(index));
+   return(index))$
 
 /*
 Function which returns the set of variables that appear in a atomic formula
@@ -88,7 +88,7 @@ VariablesAtomicFormula(F):=block([FREE, i],
             (push(charat(F,i),FREE)),
         i:i+1),
         FREE: reverse(FREE),
-        return(FREE)));
+        return(FREE)))$
         
 /*
 We assume for the rest of code that every relational symbol
@@ -111,7 +111,7 @@ relation symbol in a given model.
 @return             The interpretation for the symbol R or false if there is no interpretation
                     for that symbol.
 */
-InterpretationFor(Model,R):=block([], return(assoc(R,Model[2])));
+InterpretationFor(Model,R):=block([], return(assoc(R,Model[2])))$
 
 /*
 Since we are concentrating on FO^4, we fix that the set of variables that can appear
@@ -172,7 +172,7 @@ IsAtomicFormulaTrue(Model, Assignment, AtomicFormula):=block([],
         if(elementp(interpretationForTuple,interpretationForSymbol)) then
         (return(1))
         else
-        (return(0))));
+        (return(0))))$
         
 /*
 Function for verifying whether a given assignment for a given model satisfies a given
@@ -249,7 +249,7 @@ IsFormulaTrue(Model, Assignment, Formula):=block([IsTrue, ModelDomain, D, u, w],
         else (
             u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
             w:IsFormulaTrue(Model, Assignment, substring(Formula,D+3,slength(Formula)+1)),
-            return((1-u+w-(1-u)*w)*(1+u-w-u*(1-w))))));
+            return((1-u+w-(1-u)*w)*(1+u-w-u*(1-w))))))$
 
 /*
 @param[in]  List
@@ -263,7 +263,7 @@ subtuples(list):=block([tuples],
             for k:1 thru length(list) do (
                 for l:1 thru length(list) do (
                     tuples: cons([list[i],list[j],list[k],list[l]],tuples))))),
-    return(tuples));
+    return(tuples))$
 /*
 Evaluate an FO^4 formula over the given model by returning the set of tuples of 
 elements of model that satisfy the formula.
@@ -287,7 +287,7 @@ FOQuery(Model, Formula):=block([ModelDomain, tuples, satTuples, assignment],
         assignment: [["x",tuples[i][1]],["y",tuples[i][2]],["z",tuples[i][3]],["w",tuples[i][4]]],
         if (is(IsFormulaTrue(Model, assignment, Formula) = 1)) then (
             satTuples: cons(tuples[i], satTuples))),
-    return(satTuples));
+    return(satTuples))$
     
 /*
 Lazy version of FOQuery, which returns empty list if there is no satisfying assignment,
@@ -313,7 +313,7 @@ LazyFOQuery(Model, Formula):=block([ModelDomain, tuples, satTuple, assignment],
         if (is(IsFormulaTrue(Model, assignment, Formula) = 1)) then (
             satTuple: tuples[i],
             i: length(tuples))),
-    return(satTuple));
+    return(satTuple))$
     
 /*
 Variant of FOQuery, where we assume that the only variable of Formula without intepretation
@@ -339,4 +339,4 @@ SingleFOQuery(Model, Formula, Assignment, Variable):=block([ModelDomain, satElem
         /* Check whether this new assignment satisfies the formula. */
         if (is(IsFormulaTrue(Model, extendedAssignment, Formula) = 1)) then (
             satElements: cons(ModelDomain[i],satElements))),
-    return(satElements));
+    return(satElements))$
