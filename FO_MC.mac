@@ -168,9 +168,9 @@ IsAtomicFormulaTrue(Model, Assignment, AtomicFormula):=block([],
             interpretationForTuple: push(assoc(tupleOfVariables[i],Assignment),interpretationForTuple)),
         /* Since we used push, we have to reverse the tuple to get matching interpretation. */
         interpretationForTuple: reverse(interpretationForTuple),
-		/* If the length of interpretationForTuple is one, check using only the first element. */
-		if (length(interpretationForTuple) = 1) then 
-		(interpretationForTuple: interpretationForTuple[1]),
+        /* If the length of interpretationForTuple is one, check using only the first element. */
+        if (length(interpretationForTuple) = 1) then 
+        (interpretationForTuple: interpretationForTuple[1]),
         /* Check whether interpretationForTuple belongs to the interpretation for the relational symbol. */
         if(elementp(interpretationForTuple,interpretationForSymbol)) then
         (return(1))
