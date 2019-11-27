@@ -329,20 +329,15 @@ replaceTermsInPolynomial(f):=block([Index, T1, T2],
         if (INTEGERP(f) = true) then (
             /*Apply convertNumberToTerm.*/
             return(convertNumberToTerm(f))
-        )
+        ),
         /*No innermost operator and is not an integer => this is a monomial.*/
-        /*Check whether the lenght of f is three.*/
-        else if (slength(f) = 3) then (
-            /*Apply convert monomial to term.*/
-            return(convertMonomialToTerm(charat(f,1), charat(f,3))))
-        else (
-            /*Just return f.*/
-            return(f)))
+        /*Apply convert monomial to term.*/
+        return(convertMonomialToTerm(charat(f,2), charat(f,4))))
     else (
         /*Apply this function recursively.*/
-        T1: replaceTermsInPolynomial(substring(T, 2, Index)),
-        T2: replaceTermsInPolynomial(substring(T, Index + 1, slength(T))),
-        if (charat(T, Index) = "+") then (
+        T1: replaceTermsInPolynomial(substring(f, 2, Index)),
+        T2: replaceTermsInPolynomial(substring(f, Index + 1, slength(f))),
+        if (charat(f, Index) = "+") then (
             return(sconcat("(",T1,"+",T2,")")))
         else (
             return(sconcat("(",T1,"*",T2,")")))))$
