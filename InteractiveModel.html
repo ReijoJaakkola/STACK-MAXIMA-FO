@@ -18,51 +18,73 @@ Tested using javascript in STACK-exercises so created this picture of model of v
         JXG.Options.renderer = 'svg';
         var boxDimensions = [-5,5,5,-5];
         var board = JXG.JSXGraph.initBoard('box', {boundingbox:boxDimensions, showNavigation: false, showCopyright: false});
-        
-        var domain = [1,2,3,4];
-        var domainCoords = [[-4,4],[4,4],[-4,-4],[4,-4]];
-        var R = [[[-4,4],[3.9,4]],[[-4,4],[-4,-3.9]],[[4,4],[4,-3.9]],[[-4,-4],[3.9,-4]],[[4,-4],[-3.9,3.9]]];
-        var P = [[-4.3,4.3],[4.3,-4.3],[0.6,0.6]];
 
-        var points = [0,0,0,0];
-        var redPoints = [];
+        var domain = [1,2,3,4]
+        var domainCoords = [[-4,4],[4,4],[-4,-4],[4,-4]]
         
+        function getRandomInt(min, max) {
+            min = Math.ceil(min)
+            max = Math.floor(max)
+            return Math.floor(Math.random() * (max - min + 1)) + min
+        }
+
+        function getRandomSubarray(arr, size) {
+            var shuffled = arr.slice(0), i = arr.length, temp, index
+            while (i--) {
+                index = Math.floor((i + 1) * Math.random())
+                temp = shuffled[index]
+                shuffled[index] = shuffled[i]
+                shuffled[i] = temp
+            }
+            return shuffled.slice(0, size)
+        }
+
+        var R_allCandidates = [[[3.9,4],[3.9,-3.9],[-4,-3.9]],[[-3.9,4],[-3.9,-3.9],[4,-3.9]],[[-4,3.9],[3.9,-4],[3.9,3.9]],[[-3.9,-4],[4,3.9],[-3.9,3.9]]]
+        var R = []
         for (var i = 0; i < domain.length; ++i) {
-            points[i] = board.create('point',domainCoords[i], {color:'black', name: domain[i], fixed: true, highlight:false, showinfobox: false});
+            var candidates = getRandomSubarray(R_allCandidates[i], getRandomInt(1,2))
+            for (var candidate of candidates) {
+                R.push([domainCoords[i],candidate])
+            }
+        }
+        
+        var P_allCandidates = [[[-4.5,4.5],[4.5,-4.5],[1,1]],[[-4.5,4],[4.5,4],[0,3]],[[-4,4.5],[-4,-4.5],[-3,0]],[[4.5,4.5],[-4.5,-4.5],[-1,1]],[[4,4.5],[4,-4.5],[3,0]],[[-4.5,-4],[4.5,-4],[0,-3]]]
+        var P = P_allCandidates[getRandomInt(1,5)]
+
+        var points = [0,0,0,0]
+        var redPoints = []
+
+        for (var i = 0; i < domain.length; ++i) {
+            points[i] = board.create('point',domainCoords[i], {color:'black', name: domain[i], fixed: true, highlight:false, showinfobox: false})
             points[i].on("down",function(e){
                 if(this.color != 'red') {
                     this.setAttribute({color:'red'});
-                    this.color = 'red';
+                    this.color = 'red'
                     redPoints.push(this.name);
                 }
                 else {
                     this.setAttribute({color:'black'});
-                    this.color = 'black';
+                    this.color = 'black'
                     redPoints.splice(redPoints.indexOf(this.name), 1);
                 }
             });
         }
 
         for (var i = 0; i < R.length; ++i) {
-                var points = R[i];
-                board.create('line',R[i], {strokeWidth:4, straightFirst:false, straightLast:false, lastArrow:true, highlight:false, fixed: true});
+                var points = R[i]
+                board.create('line', R[i], {strokeWidth:4, straightFirst:false, straightLast:false, lastArrow:true, highlight:false, fixed: true})
         }
 
-        board.create('ellipse',[P[0],P[1],P[2]],
-                                {strokeColor: '#00ff00', highlightStrokeColor: '#00ff00', strokeWidth: 2});
+        board.create('ellipse',P,{strokeColor: '#00ff00', highlightStrokeColor: '#00ff00', strokeWidth: 2})
 
         function getAnswerInput(a) {
-        var myElem=document.getElementsByTagName('input');
+            var myElem=document.getElementsByTagName('input')
             for (var i = 0; i < myElem.length; i++) {
                 if (myElem[i].id.indexOf(a)>=0){
-                    return myElem[i];
+                    return myElem[i]
                 }
             }
             return null;
-        }
-
-        window.onload=function() {
-            answer=getAnswerInput('ans1');
         }
         </script>
     </body>
