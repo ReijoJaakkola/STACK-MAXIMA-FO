@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    </head>
+    <body>
+        <script type="text/javascript" charset="UTF-8" src="//cdnjs.cloudflare.com/ajax/libs/jsxgraph/0.99.7/jsxgraphcore.js"></script>
+        <div id="box" class="jxgbox" style="width:300px; height:300px;"></div>
+
+        <script type="text/javascript">
+        JXG.Options.renderer = 'svg';
+        var boxDimensions = [-5,5,5,-5];
+        var board = JXG.JSXGraph.initBoard('box', {boundingbox:boxDimensions, showNavigation: false, showCopyright: false});
+        
+        var domain = [1,2,3,4];
+        var domainCoords = [[-4,4],[4,4],[-4,-4],[4,-4]];
+        var R = [[[-4,4],[3.9,4]],[[-4,4],[-4,-3.9]],[[4,4],[4,-3.9]],[[-4,-4],[3.9,-4]],[[4,-4],[-3.9,3.9]]];
+        var P = [[-4.3,4.3],[4.3,-4.3],[0.6,0.6]];
+
+        var points = [0,0,0,0];
+        var redPoints = [];
+        
+        for (var i = 0; i < domain.length; ++i) {
+            points[i] = board.create('point',domainCoords[i], {color:'black', name: domain[i], fixed: true, highlight:false, showinfobox: false});
+            points[i].on("down",function(e){
+                if(this.color != 'red') {
+                    this.setAttribute({color:'red'});
+                    this.color = 'red';
+                    redPoints.push(this.name);
+                }
+                else {
+                    this.setAttribute({color:'black'});
+                    this.color = 'black';
+                    redPoints.splice(redPoints.indexOf(this.name), 1);
+                }
+            });
+        }
+
+        for (var i = 0; i < R.length; ++i) {
+                var points = R[i];
+                board.create('line',R[i], {strokeWidth:4, straightFirst:false, straightLast:false, lastArrow:true, highlight:false, fixed: true});
+        }
+
+        board.create('ellipse',[P[0],P[1],P[2]],
+                                {strokeColor: '#00ff00', highlightStrokeColor: '#00ff00', strokeWidth: 2});
+
+        function getAnswerInput(a) {
+        var myElem=document.getElementsByTagName('input');
+            for (var i = 0; i < myElem.length; i++) {
+                if (myElem[i].id.indexOf(a)>=0){
+                    return myElem[i];
+                }
+            }
+            return null;
+        }
+
+        window.onload=function() {
+            answer=getAnswerInput('ans1');
+        }
+        </script>
+    </body>
+</html>
