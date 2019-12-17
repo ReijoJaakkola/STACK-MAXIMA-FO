@@ -10,6 +10,21 @@ A = forall, E = exists, ! = not, & = and, | = or, ->, if...then, <-> = iff
 */
 
 /*
+Safe(r) version of charat. Checks whether the given index is legal,
+and in positive case calls charat.
+
+@param[in]	A		String
+@param[in]	index 
+
+@return				-1, if index is illegal, and charat(A,index) otherwise.
+*/
+safeCharat(A,index):=block([],
+	if (index < 1 or index > slength(A)) then (
+		return(-1))
+	else (
+		return(charat(A,index))))$
+
+/*
 Function for finding the index where the innermost (binary) connective
 in a formula begins.
 
@@ -19,7 +34,7 @@ in a formula begins.
 
 @return         Index for the innermost operator, or -1 if none found.
 */
-InnerMostOperator(F, d) := block([index, c],
+innerMostOperator(F, d) := block([index, c],
     index: -1,
     c: 0,
     for i:1 thru slength(F) do (
@@ -45,8 +60,8 @@ Function which adds outermost brackets to a formula if it does not have one.
 
 @return			F or (F).
 */
-AddOutermostBrackets(F) := block([result],
-	result: InnerMostOperator(F,0),
+addOutermostBrackets(F) := block([result],
+	result: innerMostOperator(F,0),
 	if(not(result = -1)) then (
 		return(sconcat("(",F,")")))
 	else (
@@ -61,7 +76,7 @@ Does not affect the original string.
 
 @return             Cleared string.
 */
-ClearString(CHAR,S):=block([],
+clearString(CHAR,S):=block([],
     for i:1 thru length(CHAR) do (
         S: sremove(CHAR[i],S)
     ),
@@ -74,8 +89,36 @@ Function which checks whether a given formula contains any logical constants.
 
 @return             True iff F has no logical constants.
 */
-NotContainsLogicalConstants(F):=block([Formula],
-    cleanedFormula: ClearString(["A","E","!","&","|","->","<->"],F),
+notContainsLogicalConstants(F):=block([Formula],
+    cleanedFormula: clearString(["A","E","!","&","|","->","<->"],F),
     if (slength(cleanedFormula) = slength(F)) then (return(true))
     else (return(false)))$
-	
+
+/*
+Function which verifies whether a given string represents a FO formula.
+
+@param[in] F				String
+@param[in] AtomicFormulas	Set of atomic formulas that F can contain.
+@param[in] Variables		Set of variables that F can contain.
+
+@return 					True iff F represents a FO formula.
+*/	
+isFoFormula(F, AtomicFormulas):=block([],
+	if (notContainsLogicalConstants(F)) then (
+		return(elementp(F, AtomicFormulas)))
+	else if (safeCharat(F,1) = "!") then (
+		return(true))
+	else if (safeCharat(F,1) = "A" or safeCharat(F,1) = "E") then (
+		return(true))
+	else (
+		D: innerMostOperator(F, 1),
+		if (safeCharat(F,D) = "|") then (
+			return(true))
+		else if (safeCharat(F,D) = "&") then (
+			return(true))
+		else if (safeCharat(F,D) = "-") then (
+			return(true))
+		else if (safeCharat(F,D) = "<") then (
+			return(true))
+		else (
+			return(false))))$
