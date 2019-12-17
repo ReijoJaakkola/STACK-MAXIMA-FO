@@ -5,6 +5,11 @@ Code for verifying natural deduction proofs with FO.
 */
 
 /*
+As usual, connectives are denoted by
+A = forall, E = exists, ! = not, & = and, | = or, ->, if...then, <-> = iff
+*/
+
+/*
 Function for finding the index where the innermost (binary) connective
 in a formula begins.
 
@@ -46,4 +51,31 @@ AddOutermostBrackets(F) := block([result],
 		return(sconcat("(",F,")")))
 	else (
 		return(F)))$
-		
+
+/*
+Function which removes all the given characters from a given string.
+Does not affect the original string.
+
+@param[in]  CHAR    Characters that should be removed.
+@param[in]  S       String for which we want to do the clearing.
+
+@return             Cleared string.
+*/
+ClearString(CHAR,S):=block([],
+    for i:1 thru length(CHAR) do (
+        S: sremove(CHAR[i],S)
+    ),
+    return(S))$
+
+/*
+Function which checks whether a given formula contains any logical constants.
+
+@param[in]  F       The given formula.
+
+@return             True iff F has no logical constants.
+*/
+NotContainsLogicalConstants(F):=block([Formula],
+    cleanedFormula: ClearString(["A","E","!","&","|","->","<->"],F),
+    if (slength(cleanedFormula) = slength(F)) then (return(true))
+    else (return(false)))$
+	
