@@ -25,6 +25,46 @@ safeCharat(A,index):=block([],
 		return(charat(A,index))))$
 
 /*
+Helper function for checking that a given string is 
+representing a number.
+
+@param[in]  C   The string.
+
+@return         True iff C is a string representing an integer.
+*/
+INTEGERP(C):=block([X],
+    /*First check that C is a string.*/
+    if (stringp(C) = false) then (return(false)),
+    X:charlist(C),
+    /*We will analyse the ASCII codes for each character in C.*/
+    X:map(cint,X),
+    /*Check that the ASCII code for every character in C is in the interval [48,57].*/
+    X:map(lambda([x], 47 < x and x < 58),X),
+    if(member(false,X)) then 
+        (return(false))
+    else return(true))$
+
+/*
+Type conversion from string to int.
+NOTE: Assumes that the input is a string representing a number.
+
+@param[in]  C   The string.
+
+@return         The integer that C represents.
+*/
+CONVINT(C):=block([X, INT],
+    INT:0, X:charlist(C),
+    /*We will analyse the ASCII codes for each character in C.*/
+    X:map(cint,X),
+    /*If c is a character representing a number, then the number is*/
+    /*is the ASCII code of c minus 48.*/
+    X:map(lambda([x], x - 48),X),
+    /*Convert a list of digits into a number.*/
+    for i:1 thru length(X) do(
+        INT: INT + X[i]*10^(length(X)-i)),
+    return(INT))$
+
+/*
 Function for finding the index where the innermost (binary) connective
 in a formula begins.
 
