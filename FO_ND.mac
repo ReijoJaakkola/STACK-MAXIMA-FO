@@ -98,14 +98,14 @@ notContainsLogicalConstants(F):=block([Formula],
 Function which verifies whether a given string represents a FO formula.
 
 @param[in] F				String
-@param[in] AtomicFormulas	Set of atomic formulas that F can contain.
-@param[in] Variables		Set of variables that F can contain.
+@param[in] atomicFormulas	Set of atomic formulas that F can contain.
+@param[in] variables		Set of variables that F can contain.
 
 @return 					True iff F represents a FO formula.
 */	
-isFoFormula(F, AtomicFormulas):=block([],
+isFoFormula(F, atomicFormulas, variables):=block([],
 	if (notContainsLogicalConstants(F)) then (
-		return(elementp(F, AtomicFormulas)))
+		return(elementp(F, atomicFormulas)))
 	else if (safeCharat(F,1) = "!") then (
 		return(true))
 	else if (safeCharat(F,1) = "A" or safeCharat(F,1) = "E") then (
