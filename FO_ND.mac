@@ -160,6 +160,8 @@ Function which verifies whether a given string represents a FO formula.
 @return 					True iff F represents a FO formula.
 */	
 isFoFormula(F, atomicFormulas, variables):=block([],
+	if (not(stringp(F))) then (
+		return(false)),
 	if (notContainsLogicalConstants(F)) then (
 		return(elementp(F, atomicFormulas)))
 	else if (safeCharat(F,1) = "!") then (
@@ -171,14 +173,12 @@ isFoFormula(F, atomicFormulas, variables):=block([],
 			return(isFoFormula(safeSubstring(F,3,slength(Formula)+1), atomicFormulas, variables))))
 	else (
 		D: innerMostOperator(F, 1),
-		if (safeCharat(F,D) = "|") then (
-			return(true))
-		else if (safeCharat(F,D) = "&") then (
-			return(true))
+		if (safeCharat(F,D) = "|" or safeCharat(F,D) = "&") then (
+			return(isFoFormula(substring(F,2,D),atomicFormulas,variables) and isFoFormula(substring(F,D+1,slength(F)+1),atomicFormulas,variables)))
 		else if (safeCharat(F,D) = "-") then (
-			return(true))
+			return(isFoFormula(substring(F,2,D),atomicFormulas,variables) and isFoFormula(substring(F,D+2,slength(F)+1),atomicFormulas,variables)))
 		else if (safeCharat(F,D) = "<") then (
-			return(true))
+			return(isFoFormula(substring(F,2,D),atomicFormulas,variables) and isFoFormula(substring(F,D+3,slength(F)+1),atomicFormulas,variables)))
 		else (
 			return(false))))$
 			
