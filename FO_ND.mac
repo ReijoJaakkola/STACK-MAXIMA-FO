@@ -25,6 +25,22 @@ safeCharat(A,index):=block([],
 		return(charat(A,index))))$
 
 /*
+Safe(r) version of substring. Checks whether the given indexes are lega,
+and in positive case calls substring.
+
+@param[in]	A			String
+@param[in]	startIndex
+@param[in]	endIndex
+
+@return				-1, if indexes were illegal, and substring(A, startIndex, endIndex) otherwise.
+*/
+safeSubstring(A,startIndex,endIndex) := block([],
+	if (startIndex < 1 or endIndex > slength(A) + 1) then (
+		return(-1))
+	else (
+		return(substring(A,startIndex,endIndex))))$
+
+/*
 Helper function for checking that a given string is 
 representing a number.
 
@@ -149,7 +165,10 @@ isFoFormula(F, atomicFormulas, variables):=block([],
 	else if (safeCharat(F,1) = "!") then (
 		return(true))
 	else if (safeCharat(F,1) = "A" or safeCharat(F,1) = "E") then (
-		return(true))
+		if (not(elementp(safeCharat(F,2), variables))) then (
+			return(false))
+		else (
+			return(isFoFormula(safeSubstring(F,3,slength(Formula)+1), atomicFormulas, variables))))
 	else (
 		D: innerMostOperator(F, 1),
 		if (safeCharat(F,D) = "|") then (
@@ -162,3 +181,4 @@ isFoFormula(F, atomicFormulas, variables):=block([],
 			return(true))
 		else (
 			return(false))))$
+			
