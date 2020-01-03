@@ -257,3 +257,24 @@ checkDeductionForm(Ded):=block([],
 		return(false))
 	else (
 		return(output)))$
+
+/*
+Function that verifies that the deduction has been written correctly.
+
+@param[in]	Ded				The deduction as an array.
+@param[in]	atomicFormulas	Atomic formulas that can appear in the formulas in the deduction.
+@param[in]  variables		Variables that can appear in the deduction.
+@return						True iff (hopefully) the deduction has a correct form.
+*/
+validateDeductionForm(Ded, atomicFormulas, variables):=block([],
+	if (checkSubDeductions(Ded) = false) then (
+		return(false))
+	else (
+		output: checkDeductionForm(Ded),
+		if (output = false) then (
+			return(false))
+		else (
+			valid: false,
+			for i:1 thru length(output) do (
+				valid: isFoFormula(output[i],atomicFormulas,variables)),
+			return(valid))))$
