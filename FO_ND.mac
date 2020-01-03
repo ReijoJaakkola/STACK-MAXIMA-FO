@@ -184,7 +184,7 @@ isFoFormula(F, atomicFormulas, variables):=block([],
 			return(false))))$
 			
 /*
-Example deduction:
+Example deductions:
 OL ExEyA
 		<AO EyA
 				<AO A
@@ -192,6 +192,11 @@ OL ExEyA
 				 ET4 EyExA>
 		EE EyExA>
 EE EyExA
+
+OL A & B
+KE1 A
+KE1 B
+KT2,3 B&A
 
 Thus users indicate that they start a sub-deduction using '<' and '>'.
 */
@@ -221,14 +226,16 @@ checkDeductionRow(claim):=block([],
 	if (safeCharat(start,1) = "<") then (
 		return(checkDeductionRow(safeSubstring(start,2,slength(start)+1))))
 	else if (start = "DT" or start = "DE" or start = "KE" or start = "RE" or start = "NE") then (
+		/*These rows should have the form STRING INTEGER STRING.*/
 	    j:3,
 		while (INTEGERP(safeCharat(claim,j)) and j <= slength(claim)) do (
 			j:j+1),
 		if (j = 3 or j > slength(claim)) then (
 			return(false))
 		else (
-			return(safeSubstring(claim,j,slength(claim)+1))))
+			return(addOutermostBrackets(safeSubstring(claim,j,slength(claim)+1)))))
 	else if(start = "KT" or start = "IE" or start = "EE") then (
+		/*These rows should have the form STRING INTEGER , INTEGER STRING.*/
 		j:3,
 		while (INTEGERP(safeCharat(claim,j)) and j <= slength(claim)) do (
 			j:j+1),
@@ -241,9 +248,9 @@ checkDeductionRow(claim):=block([],
 			if (k = j+1 or k > slength(claim)) then (
 				return(false))
 			else (
-				return(safeSubstring(claim,k,slength(claim)+1)))))
+				return(addOutermostBrackets(safeSubstring(claim,k,slength(claim)+1))))))
 	else if(FIRSTP="IT" or FIRSTP="NT" or FIRSTP="OL" or FIRSTP="AO" or FIRSTP="ET") then (
-		return(safeSubstring(claim,3,slength(claim)+1)))
+		return(addOutermostBrackets(safeSubstring(claim,3,slength(claim)+1))))
 	else (
 		return(false)))$
 		
@@ -267,14 +274,63 @@ Function that verifies that the deduction has been written correctly.
 @return						True iff (hopefully) the deduction has a correct form.
 */
 validateDeductionForm(Ded, atomicFormulas, variables):=block([],
+	/*Check that every subdeduction that begins also ends.*/
 	if (checkSubDeductions(Ded) = false) then (
 		return(false))
 	else (
+		/*Obtain the formulas that appear in the deduction.*/
 		output: checkDeductionForm(Ded),
 		if (output = false) then (
+			/*Deduction had incorrect form.*/
 			return(false))
 		else (
+			/*Verify that each formula is syntactically correct.*/
 			valid: false,
 			for i:1 thru length(output) do (
 				valid: isFoFormula(output[i],atomicFormulas,variables)),
 			return(valid))))$
+			
+/*
+Next will be the functions used to verify that specific
+deduction rules have been used correctly.
+*/
+
+/*
+Verify that elimination of negation has been used correctly.
+
+@param[in] proposition		The proposition that is been used to prove the claim.
+@param[in] conclusion		What was the conclusion drawn from the proposition.
+
+@return 					True iff the rule has been used correctly.
+*/
+NE(proposition, conclusion) := block([], return(is(sconcat("!!",conclusion) = proposition)))$
+
+/*
+Verify that introduction of negation has been used correctly.
+
+@param[in] propositions     What is currently known.
+@param[in] conclusion       What was the conclusion drawn from the propositions.
+
+@return                     True iff the rule has been used correctly.
+*/
+NT(propositions, conclusion) := block([valid, conc, assm, index1, index2, assm1, assm2],
+	if (not(safeCharat(conclusion,1) = "!")) then (
+		return(false))
+	else (
+		/*If conclusion = !A, then we have to check that propositions contain a formula*/
+		/*of the form A->(B&!B) i.e. from A follows a contradiction.*/
+		valid: false,
+		conc: safeSubstring(conclusion, 2, slength(conclusion) + 1),
+		assm: listify(propositions),
+		for i:1 thru length(assm) do (
+			index1: innerMostOperator(assm[i]),
+			if (is(safeCharat(assm[i], index) = "-")) then (
+				assm1: substring(assm[i],2,j),
+				assm2: substring(assm[i],j+2,slength(assm[i])),
+				index2: innerMostOperator(assm2),
+				if (is(safeCharat(assm2, index2) = "&")) then (
+					assm3: substring(assm2, 2, index2),
+					assm4: substring(assm2, j+1, slength(assm2)),
+					if (assm1 = assm and (is(assm3 = sconcat("!",assm4)) or is(assm4 = sconcat("!",assm3)))) then (
+						valid: true)))),
+		return(valid)))$
