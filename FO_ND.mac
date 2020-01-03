@@ -313,7 +313,7 @@ Verify that introduction of negation has been used correctly.
 
 @return                     True iff the rule has been used correctly.
 */
-NT(propositions, conclusion) := block([valid, conc, assm, index1, index2, assm1, assm2],
+NT(propositions, conclusion) := block([valid, conc, assm, index1, index2, assm1, assm2, assm3, assm4],
 	if (not(safeCharat(conclusion,1) = "!")) then (
 		return(false))
 	else (
@@ -323,14 +323,14 @@ NT(propositions, conclusion) := block([valid, conc, assm, index1, index2, assm1,
 		conc: safeSubstring(conclusion, 2, slength(conclusion) + 1),
 		assm: listify(propositions),
 		for i:1 thru length(assm) do (
-			index1: innerMostOperator(assm[i]),
-			if (is(safeCharat(assm[i], index) = "-")) then (
-				assm1: substring(assm[i],2,j),
-				assm2: substring(assm[i],j+2,slength(assm[i])),
-				index2: innerMostOperator(assm2),
+			index1: innerMostOperator(assm[i],1),
+			if (is(safeCharat(assm[i], index1) = "-")) then (
+				assm1: safeSubstring(assm[i],2,index1),
+				assm2: safeSubstring(assm[i],index1+2,slength(assm[i])),
+				index2: innerMostOperator(assm2,1),
 				if (is(safeCharat(assm2, index2) = "&")) then (
-					assm3: substring(assm2, 2, index2),
-					assm4: substring(assm2, j+1, slength(assm2)),
-					if (assm1 = assm and (is(assm3 = sconcat("!",assm4)) or is(assm4 = sconcat("!",assm3)))) then (
+					assm3: safeSubstring(assm2, 2, index2),
+					assm4: safeSubstring(assm2, index2+1, slength(assm2)),
+					if (is(assm1 = conc) and (is(assm3 = sconcat("!",assm4)) or is(assm4 = sconcat("!",assm3)))) then (
 						valid: true)))),
 		return(valid)))$
