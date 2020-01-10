@@ -250,6 +250,7 @@ checkDeductionRow(claim):=block([],
 			else (
 				return(addOutermostBrackets(safeSubstring(claim,k,slength(claim)+1))))))
 	else if(FIRSTP="IT" or FIRSTP="NT" or FIRSTP="OL" or FIRSTP="AO" or FIRSTP="ET") then (
+		/*These rows just have the form STRING STRING.*/
 		return(addOutermostBrackets(safeSubstring(claim,3,slength(claim)+1))))
 	else (
 		return(false)))$
@@ -296,6 +297,57 @@ deduction rules have been used correctly.
 */
 
 /*
+Verify that elimination of disjunction has been used correctly.
+
+@param[in]	proposition		Disjunction used in the proof.
+@param[in]  knowledge		What is currently known.
+@param[in]	conclusion		What is being derived from the disjunction.
+
+@return						True iff proposition has the form (A|B) and 
+                            both (A->conclusion) and (B->conclusion) are in knowledge.
+*/
+DE(proposition, knowledge, conclusion) := block([index, A, B, C1, C2],
+	/*Start by verifying that proposition has the form (A|B).*/
+	index: innerMostOperator(proposition,1),
+	if (not(is(safeCharat(proposition, index) = "|"))) then (
+		return(false))
+	else (
+		/*Extract the relevant subformulas.*/
+		A: safeSubstring(proposition, 2, index),
+		B: safeSubstring(proposition, index+1, slength(proposition)),
+		/*Form the implications that have to be in knowledge.*/
+		C1: sconcat("(",A,"->",conclusion,")"),
+		C2: sconcat("(",B,"->",conclusion,")"),
+		/*Verify that they belong to the knowledge.*/
+		if (elementp(C1,knowledge) and elementp(C2,knowledge)) then (
+			return(true))
+		else (
+			return(false))))$
+
+/*
+Verify that introduction of disjunction has been used correctly.
+
+@param[in]	proposition
+@param[in]	conclusion
+
+@return					True iff conclusion is of the form (A|proposition) or (proposition|A).
+*/
+DT(proposition, conclusion) := block([],
+	/*Start by verifying that conclusion is of the form (A|B).*/
+	index: innerMostOperator(conclusion, 1),
+	if (not(is(safeCharat(conclusion, index) = "|"))) then (
+		return(false))
+	else (
+		/*Extract the two formulas that are joined togethor with disjunction.*/
+		A: safeSubstring(conclusion, 2, index),
+		B: safeSubstring(conclusion, index+1, slength(conclusion)),
+		/*Verify that proposition is either A or B.*/
+		if (is(proposition = A) or is(proposition = B)) then (
+			return(true)),
+		else (
+			return(false))))$
+
+/*
 Verify that elimination of negation has been used correctly.
 
 @param[in] proposition		The proposition that is been used to prove the claim.
@@ -334,3 +386,14 @@ NT(propositions, conclusion) := block([valid, conc, assm, index1, index2, assm1,
 					if (is(assm1 = conc) and (is(assm3 = sconcat("!",assm4)) or is(assm4 = sconcat("!",assm3)))) then (
 						valid: true)))),
 		return(valid)))$
+
+/*
+Verify that re-introduction of known proposition is used
+correctly.
+
+@param[in] proposition1
+@param[in] proposition2
+
+@return						True iff proposition1 == proposition2.
+*/
+RE(proposition1,proposition2):=block([], return (is(proposition1 = proposition2)))$
