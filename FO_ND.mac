@@ -387,6 +387,46 @@ IT(conclusion, knowledge) := block([index],
 	return(elementp(conclusion, knowledge)))$
 
 /*
+Verify that elimination of conjunction has been used correctly.
+
+@param[in]	proposition
+@param[in]  conclusion
+
+@return					True iff proposition has either the form (A&conclusion)
+						or (conclusion&A).
+*/
+KE(proposition, conclusion) := block([index, A, B],
+	/*Start by verifying that proposition has the form (A&B).*/
+	index: innerMostOperator(conclusion, 1),
+	if (not(is(safeCharat(conclusion, index) = "&"))) then (
+		return(false))
+	else (
+		/*Extract the two subformulas that are joined togethor with conjunction.*/
+		A: safeSubstring(proposition,2,index),
+		B: safeSubstring(proposition,index+1,slength(proposition)),
+		/*Verify that conclusion is either of them.*/
+		if (is(proposition = A) or is(proposition = B)) then (
+			return(true))
+		else (
+			return(false))))$
+
+/*
+Verify that introduction of conjunction has been used correctly.
+
+@param[in]	proposition1
+@param[in]	proposition2
+@param[in]	conclusion
+
+@return					True iff conclusion has either the form (proposition1&proposition2)
+                        or (proposition2&proposition1).
+*/
+KT(proposition1, proposition2, conclusion) := block([],
+	if(is(sconcat("(",proposition1,"&",proposition2,")")=conclusion) or is(sconcat("(",proposition2,&,proposition1,")")=conclusion)) then (
+		return(true))
+	else (
+		return(false)))$
+
+/*
 Verify that elimination of negation has been used correctly.
 
 @param[in] proposition		The proposition that is been used to prove the claim.
