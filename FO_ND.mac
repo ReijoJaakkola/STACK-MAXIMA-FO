@@ -332,7 +332,7 @@ Verify that introduction of disjunction has been used correctly.
 
 @return					True iff conclusion is of the form (A|proposition) or (proposition|A).
 */
-DT(proposition, conclusion) := block([],
+DT(proposition, conclusion) := block([index, A, B],
 	/*Start by verifying that conclusion is of the form (A|B).*/
 	index: innerMostOperator(conclusion, 1),
 	if (not(is(safeCharat(conclusion, index) = "|"))) then (
@@ -343,9 +343,48 @@ DT(proposition, conclusion) := block([],
 		B: safeSubstring(conclusion, index+1, slength(conclusion)),
 		/*Verify that proposition is either A or B.*/
 		if (is(proposition = A) or is(proposition = B)) then (
-			return(true)),
+			return(true))
 		else (
 			return(false))))$
+
+/*
+Verify that elimination of implication has been used correctly.
+
+@param[in]	proposition
+@param[in]	implication
+@param[in]	conclusion
+
+@return					True iff implication = (proposition->conclusion).
+*/
+IE(proposition, implication, conclusion) := block([index, A, B],
+	/*Start by verifying that implication is of the form (A->B).*/
+	index: innerMostOperator(implication, 1),
+	if (not(is(safeCharat(implication, index) = "-"))) then (
+		return(false))
+	else (
+		/*Extract the two formulas that are joined togethor with an implication.*/
+		A: safeSubstring(implication, 2, index),
+		B: safeSubstring(implication, index+2, slength(implication)),
+		/*Verify that A = proposition and B = conclusion.*/
+		if (is(proposition = A) and is(conclusion = B)) then (
+			return(true))
+		else (
+			return(false))))$
+
+/*
+Verify that introduction of implication has been used correctly.
+
+@param[in]	conclusion
+@param[in]	knowledge
+
+@return					True iff conclusion has the form (A->B) and it 
+                        belongs to knowledge.
+*/
+IT(conclusion, knowledge) := block([index],
+	index: innerMostOperator(conclusion, 1),
+	if (not(is(safeCharat(conclusion, index) = "-"))) then (
+		return(false)),
+	return(elementp(conclusion, knowledge)))$
 
 /*
 Verify that elimination of negation has been used correctly.
