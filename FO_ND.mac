@@ -476,3 +476,42 @@ correctly.
 @return						True iff proposition1 == proposition2.
 */
 RE(proposition1,proposition2):=block([], return (is(proposition1 = proposition2)))$
+
+/*
+Verify that elimination of equivalence has been used
+correctly.
+
+@param[in]	proposition
+@param[in]	equivalence
+@param[in]	conclusion
+
+@return						True iff equivalence is of the form (proposition <-> conclusion) or (conclusion <-> proposition)
+*/
+EE(proposition,equivalence,conclusion):=block([],
+	if(not(Equiv = sconcat("(",proposition,"<->",conclusion,")")) and not(equivalence = sconcat("(",conclusion,"<->",proposition,")"))) then (
+		return(false))
+	else (
+		return(true)))$
+		
+/*
+Verify that introduction of equivalence has been used
+correctly.
+
+@param[in] 	knowledge
+@param[in]	conclusion
+
+@return						True iff conclusion is of the form (A<->B), and both
+							(A->B) \in knowledge and (B->A) \in knowledge.
+*/
+ET(knowledge, conclusion):=block([],
+	/*Start by verifying that conclusion is of the form (A<->B).*/
+	index: innerMostOperator(conclusion,1),
+	if(not(is(safeCharat(conclusion,index) = "<"))) then (
+		return(false))
+	else (
+		A: safeSubstring(conclusion,2,index),
+		B: safeSubstring(conclusion,index+3,slength(conclusion)),
+		if(elementp(sconcat("(",A,"->",B,")"),knowledge) and elementp(sconcat("(",B,"->",A,")"))) then (
+			return(true))
+		else (
+			return(false))))$
