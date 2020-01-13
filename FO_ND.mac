@@ -525,7 +525,7 @@ used correctly.
 
 @return						True iff Ax conclusion = proposition.
 */
-UniversalElimination(proposition, conclusion) := block([],
+UniversalElimination(proposition, conclusion) := block([A],
 	if (not(safeSubstring(proposition,1) = "A")) then (
 		return(false))
 	else (
@@ -546,7 +546,7 @@ used correctly.
 
 @return						True iff Ex conclusion = proposition
 */
-ExistentialIntroduction(proposition, conclusion) := block([],
+ExistentialIntroduction(proposition, conclusion) := block([A],
 	if (not(safeSubstring(proposition,1) = "E")) then (
 		return(false))
 	else (
