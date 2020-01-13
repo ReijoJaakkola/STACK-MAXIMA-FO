@@ -526,7 +526,7 @@ used correctly.
 @return						True iff Ax conclusion = proposition.
 */
 UniversalElimination(proposition, conclusion) := block([A],
-	if (not(safeSubstring(proposition,1) = "A")) then (
+	if (not(safeCharat(proposition,1) = "A")) then (
 		return(false))
 	else (
 		A: safeSubstring(proposition,3,slength(proposition)+1),
@@ -535,7 +535,25 @@ UniversalElimination(proposition, conclusion) := block([A],
 		else (
 			return(false))))$
 
-			
+/*
+Verify that introduction of universal quantifier has been
+used correctly.
+
+@param[in] freeVariables	The free variables of active assumptions.
+@param[in] proposition
+@param[in] conclusion
+
+@return						True iff 
+*/
+UniversalIntroduction(freeVariables, proposition, conclusion) := block([],
+	if (not(safeCharat(proposition,1) = "A")) then (
+		return(false))
+	else if (not(conclusion = sconcat(safeSubstring(conclusion,3,slength(proposition)+1),proposition))) then (
+		return(false))
+	else if (elementp(safeCharat(conclusion,2),freeVariables)) then (
+		return(false))
+	else (
+		return(true)))$
 
 /*
 Verify that introduction of existential quantifier has been
@@ -547,11 +565,11 @@ used correctly.
 @return						True iff Ex conclusion = proposition
 */
 ExistentialIntroduction(proposition, conclusion) := block([A],
-	if (not(safeSubstring(proposition,1) = "E")) then (
+	if (not(safeCharat(conclusion,1) = "E")) then (
 		return(false))
 	else (
-		A: safeSubstring(proposition,3,slength(proposition)+1),
-		if (is(A = conclusion)) then (
+		A: safeSubstring(conclusion,3,slength(conclusion)+1),
+		if (is(A = proposition)) then (
 			return(true))
 		else (
 			return(false))))$
