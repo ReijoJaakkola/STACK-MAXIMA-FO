@@ -503,7 +503,7 @@ correctly.
 @return						True iff conclusion is of the form (A<->B), and both
 							(A->B) \in knowledge and (B->A) \in knowledge.
 */
-ET(knowledge, conclusion):=block([],
+ET(knowledge, conclusion) := block([index,A,B],
 	/*Start by verifying that conclusion is of the form (A<->B).*/
 	index: innerMostOperator(conclusion,1),
 	if(not(is(safeCharat(conclusion,index) = "<"))) then (
@@ -512,6 +512,46 @@ ET(knowledge, conclusion):=block([],
 		A: safeSubstring(conclusion,2,index),
 		B: safeSubstring(conclusion,index+3,slength(conclusion)),
 		if(elementp(sconcat("(",A,"->",B,")"),knowledge) and elementp(sconcat("(",B,"->",A,")"))) then (
+			return(true))
+		else (
+			return(false))))$
+			
+/*
+Verify that elimination of universal quantifier has been
+used correctly.
+
+@param[in]	proposition
+@param[in]	conclusion
+
+@return						True iff Ax conclusion = proposition.
+*/
+UniversalElimination(proposition, conclusion) := block([],
+	if (not(safeSubstring(proposition,1) = "A")) then (
+		return(false))
+	else (
+		A: safeSubstring(proposition,3,slength(proposition)+1),
+		if (is(A = conclusion)) then (
+			return(true))
+		else (
+			return(false))))$
+
+			
+
+/*
+Verify that introduction of existential quantifier has been
+used correctly.
+
+@param[in]	proposition
+@param[in]	conclusion
+
+@return						True iff Ex conclusion = proposition
+*/
+ExistentialIntroduction(proposition, conclusion) := block([],
+	if (not(safeSubstring(proposition,1) = "E")) then (
+		return(false))
+	else (
+		A: safeSubstring(proposition,3,slength(proposition)+1),
+		if (is(A = conclusion)) then (
 			return(true))
 		else (
 			return(false))))$
