@@ -35,7 +35,7 @@ and in positive case calls substring.
 @return				false, if indexes were illegal, and substring(A, startIndex, endIndex) otherwise.
 */
 safeSubstring(A,startIndex,endIndex) := block([],
-	if (not(stringp(A)) or startIndex < 1 or endIndex > slength(A) + 1) then (
+	if (not(stringp(A)) or startIndex < 1 or endIndex > slength(A) + 1 or startIndex > endIndex) then (
 		return(false))
 	else (
 		return(substring(A,startIndex,endIndex))))$
@@ -546,9 +546,9 @@ used correctly.
 @return						True iff 
 */
 UniversalIntroduction(freeVariables, proposition, conclusion) := block([],
-	if (not(safeCharat(proposition,1) = "A")) then (
+	if (not(safeCharat(conclusion,1) = "A")) then (
 		return(false))
-	else if (not(conclusion = sconcat(safeSubstring(conclusion,3,slength(proposition)+1),proposition))) then (
+	else if (not(is(conclusion = sconcat(safeSubstring(conclusion,1,3),proposition)))) then (
 		return(false))
 	else if (elementp(safeCharat(conclusion,2),freeVariables)) then (
 		return(false))
