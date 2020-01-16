@@ -259,7 +259,7 @@ checkDeductionRow(claim):=block([start,j,k],
 @param[in] Ded				The deduction given as an array.
 @return						True iff each row in the deduction has the correct form.
 */
-checkDeductionForm(Ded):=block([],
+checkDeductionForm(Ded):=block([output],
 	output: map(checkDeductionRow,Ded),
 	if (elementp(false,setify(output))) then (
 		return(false))
