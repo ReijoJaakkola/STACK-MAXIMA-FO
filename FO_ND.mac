@@ -221,7 +221,7 @@ checkSubDeductions(Ded):=block([i,Counter],
 @return                     False if the row had incorrect form. Otherwise 
                             returns the formula that appeared in the row.
 */
-checkDeductionRow(claim):=block([],
+checkDeductionRow(claim):=block([start,j,k],
 	start: safeSubstring(claim,1,3),
 	if (safeCharat(start,1) = "<") then (
 		return(checkDeductionRow(safeSubstring(start,2,slength(start)+1))))
