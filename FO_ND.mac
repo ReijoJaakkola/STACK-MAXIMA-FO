@@ -145,6 +145,7 @@ Function which checks whether a given formula contains any logical constants.
 @param[in]  F       The given formula.
 
 @return             True iff F has no logical constants.
+
 */
 notContainsLogicalConstants(F):=block([Formula],
     cleanedFormula: clearString(["A","E","!","&","|","->","<->"],F),
@@ -515,6 +516,18 @@ ET(knowledge, conclusion) := block([index,A,B],
 			return(true))
 		else (
 			return(false))))$
+
+/*
+For rules concerning quantifiers we have to keep track of what variables
+appear free in what formulas. For that purpose there should exists a global array
+FREEVARIABLES which contains this information. In the rules that follow the FREEVARIABLES
+refers exactly to such a dictionary where the formula is the key and the value is a set of
+variables e.q.
+
+FREEVARIABLES = [["A",{"x","y"}]]
+
+and the variables can be recovered using assoc("A",FREEVARIABLES)
+*/
 			
 /*
 Verify that elimination of universal quantifier has been
@@ -539,18 +552,17 @@ UniversalElimination(proposition, conclusion) := block([A],
 Verify that introduction of universal quantifier has been
 used correctly.
 
-@param[in] freeVariables	The free variables of active assumptions.
 @param[in] proposition
 @param[in] conclusion
 
 @return						True iff 
 */
-UniversalIntroduction(freeVariables, proposition, conclusion) := block([],
+UniversalIntroduction(proposition, conclusion) := block([],
 	if (not(safeCharat(conclusion,1) = "A")) then (
 		return(false))
 	else if (not(is(conclusion = sconcat(safeSubstring(conclusion,1,3),proposition)))) then (
 		return(false))
-	else if (elementp(safeCharat(conclusion,2),freeVariables)) then (
+	else if (elementp(safeCharat(conclusion,2), assoc(proposition, FREEVARIABLES))) then (
 		return(false))
 	else (
 		return(true)))$
