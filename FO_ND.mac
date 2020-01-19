@@ -642,3 +642,25 @@ ExistentialIntroduction(proposition, conclusion) := block([A],
 			return(true))
 		else (
 			return(false))))$
+
+/*
+Short explanation of what InferenceVerifier actually does:
+	- Deduction is given as an array, assumptions are given as an array.
+	- Goes through the deduction line by line. Maintains an array called "knowledge".
+	  When a line has been checked that is not a declaration of assumption, the line
+	  is added into the knowledge.
+	- When a sub-deduction begins, we call recursively a new InferenceVerifier that
+	  receives as a parameter the knowledge already obtained in the outer deduction.
+	  Note that when sub-deduction ends, the knowledge obtained there is not returned
+	  back to the outer deduction. However the outer deduction obtains an implication
+	  P -> Q, where P is the first formula in the deduction and Q is the last formula.
+	- When the inference verifier spots an error, an erro code is returned. Below you can find
+	  explanations for the errors:
+	  + TODO
+*/
+
+/*
+
+*/		
+inferenceVerifier(assumptions, knowledge, deduction) := block([],
+	return(false))$
