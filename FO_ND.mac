@@ -576,16 +576,18 @@ UniversalIntroduction(assumptions, proposition, conclusion) := block([valid, var
 			return(false))))$
 
 /*
+Verify that elimination of existential quantifier has been used
+correctly.
 
 @param[in] assumptions		The set of active assumptions.
 @param[in] knowledge		Set of propositions that have already been deduced from the
-                            active assumptions.
+                            active assumptions. Note that this set contains assumptions.
 @param[in]	conclusion		What is being deduced using existential elimination.
 
-@return						True iff
+@return						True iff the rule for eliminating existential quantifier has
+                            been used correctly.
 */
-ExistentialElimination(assumptions, knowledge, conclusion) := block([valid],
-	valid: false,
+ExistentialElimination(assumptions, knowledge, conclusion) := block([valid, formula, d1, formulaFirstPart, formulaFirstPart, found, free],
 	/*
 	We proceed by checking every formula in knowledge and
 	will set vaild -> true, iff there exists formulas ExP,P->conclusion in
@@ -593,6 +595,33 @@ ExistentialElimination(assumptions, knowledge, conclusion) := block([valid],
 	1) x does not appear as a free variable in conclusion.
 	2) x does not appear as a free variable in active assumptions.
 	*/
+	valid: false,
+	for i:1 thru length(knowledge) do (
+		formula: knowledge[i],
+		d1: innerMostOperator(formula),
+		/*Is the formula of the form P->Q?*/
+		if is(safeCharat(formula, d1) = "-") then (
+			formulaFirstPart: safeSubstring(formula, 2, d1),
+			formulaSecondPart: safeSubstring(formula, d1 + 2, slength(formula)),
+			/*Is the formula of the form P->conclusion ?*/
+			if is(formulaSecondPart = conclusion) then (
+				/*Does Ex P belong to knowledge ?*/
+				found: false,
+				variable: "",
+				for i:1 thru length(knowledge) do (
+					if is(safeCharat(knowledge[i], 1) = "E") and is(safeSubstring(knowledge[i], 3, slength(knowledge[i]) + 1) = formulaFirstPart) then (
+						variable: safeCharat(knowledge[i],2),
+						found: true)),
+				if found = true then (
+					/*Does variable belong to the free variables of conclusion or active assumptions? */
+					free: false,
+					if elementp(variable, assoc(conclusion, FREEVARIABLES)) then (
+						free: true),
+					for i:1 thru length(assumptions) do (
+						if elementp(variable, assoc(assumptions[i], FREEVARIABLES)) then (
+							free: true)),
+					if free = false then (
+						valid: true))))),
 	return(valid))$
 
 /*
