@@ -656,11 +656,25 @@ Short explanation of what InferenceVerifier actually does:
 	  P -> Q, where P is the first formula in the deduction and Q is the last formula.
 	- When the inference verifier spots an error, an erro code is returned. Below you can find
 	  explanations for the errors:
-	  + TODO
+	  + 0: Illegal use of OL.
 */
 
 /*
 
 */		
-inferenceVerifier(assumptions, knowledge, deduction) := block([],
-	return(false))$
+inferenceVerifier(assumptions, knowledge, deduction) := block([i, continue, firstPart, formulaPart],
+	i: 1,
+	continue: true,
+	while (i <= length(deduction) and continue = true) do (
+		if (is(safeCharat(deduction[i],1) = "<")) then (
+			/*TODO*/
+		)
+		else (
+			firstPart: safeSubstring(deduction[i], 1, 3),
+			if (firstPart = "OL") then (
+				formulaPart: checkDeductionRow(deduction[i]),
+				if (not(elementp(formulaPart, setify(assumptions)))) then (
+					continue: 0))
+		),
+		i: i + 1),
+	return(continue))$
