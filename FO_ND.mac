@@ -552,20 +552,48 @@ UniversalElimination(proposition, conclusion) := block([A],
 Verify that introduction of universal quantifier has been
 used correctly.
 
+@param[in] assumptions		The set of active assumptions.
 @param[in] proposition
 @param[in] conclusion
 
-@return						True iff 
+@return						True iff conclusion is of the form Ax proposition, where x does
+                            not appear as a free variable in active assumptions.
 */
-UniversalIntroduction(proposition, conclusion) := block([],
+UniversalIntroduction(assumptions, proposition, conclusion) := block([valid, variable],
 	if (not(safeCharat(conclusion,1) = "A")) then (
 		return(false))
 	else if (not(is(conclusion = sconcat(safeSubstring(conclusion,1,3),proposition)))) then (
 		return(false))
-	else if (elementp(safeCharat(conclusion,2), assoc(proposition, FREEVARIABLES))) then (
-		return(false))
 	else (
-		return(true)))$
+		valid: true,
+		variable: safeCharat(conclusion,2),
+		for i:1 thru length(assumptions) do (
+			if (elementp(variable, assoc(assumptions[i],FREEVARIABLES))) then (
+				valid: false)),
+		if (valid = true) then (
+			return(true))
+		else (
+			return(false))))$
+
+/*
+
+@param[in] assumptions		The set of active assumptions.
+@param[in] knowledge		Set of propositions that have already been deduced from the
+                            active assumptions.
+@param[in]	conclusion		What is being deduced using existential elimination.
+
+@return						True iff
+*/
+ExistentialElimination(assumptions, knowledge, conclusion) := block([valid],
+	valid: false,
+	/*
+	We proceed by checking every formula in knowledge and
+	will set vaild -> true, iff there exists formulas ExP,P->conclusion in
+	knowledge so that
+	1) x does not appear as a free variable in conclusion.
+	2) x does not appear as a free variable in active assumptions.
+	*/
+	return(valid))$
 
 /*
 Verify that introduction of existential quantifier has been
