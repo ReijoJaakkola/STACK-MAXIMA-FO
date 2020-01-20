@@ -1,0 +1,9 @@
+/*
+This file contains example deductions for testing purposes.
+*/
+
+--Valid deductions--
+
+["OLA","DT1(A|B)"];
+
+--------------------

@@ -250,7 +250,7 @@ checkDeductionRow(claim):=block([start,j,k],
 				return(false))
 			else (
 				return(addOutermostBrackets(safeSubstring(claim,k,slength(claim)+1))))))
-	else if(FIRSTP="IT" or FIRSTP="NT" or FIRSTP="OL" or FIRSTP="AO" or FIRSTP="ET") then (
+	else if(start="IT" or start="NT" or start="OL" or start="AO" or start="ET") then (
 		/*These rows just have the form STRING STRING.*/
 		return(addOutermostBrackets(safeSubstring(claim,3,slength(claim)+1))))
 	else (
@@ -680,19 +680,21 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, continue, firs
 			if is(firstPart = "OL") then (
 				formulaPart: checkDeductionRow(deduction[i]),
 				if (not(elementp(formulaPart, setify(assumptions)))) then (
-					continue: [1, i]))
+					continue: [1, i])
+				else (
+					push(formulaPart, knowledge)))
 			else if is(firstPart = "DT") then (
 				j: 3,
 				while INTEGERP(safeCharat(deduction[i], j)) do (
 					j: j + 1),
 				index: CONVINT(safeSubstring(deduction[i], 3, j)),
 				formulaPart: checkDeductionRow(deduction[i]),
-				if index < 1 or index > length(deduction) or not(elementp(deduction[index],knowledge)) then (
+				if index < 1 or index > length(deduction) or not(elementp(checkDeductionRow(deduction[index]),setify(knowledge))) then (
 					continue: [2, i])
-				else if not(DT(deduction[index], formulaPart)) then (
+				else if not(DT(checkDeductionRow(deduction[index]), formulaPart)) then (
 					continue: [2, i])
 				else (
-					/*TODO ADD SOMETHING TO KNOWLEDGE*/
+					push(formulaPart, knowledge)))
 		),
 		i: i + 1),
 	return(continue))$
