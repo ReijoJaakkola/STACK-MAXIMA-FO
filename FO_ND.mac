@@ -145,6 +145,7 @@ Function which checks whether a given formula contains any logical constants.
 @param[in]  F       The given formula.
 
 @return             True iff F has no logical constants.
+
 */
 notContainsLogicalConstants(F):=block([Formula],
     cleanedFormula: clearString(["A","E","!","&","|","->","<->"],F),
@@ -515,6 +516,18 @@ ET(knowledge, conclusion) := block([index,A,B],
 			return(true))
 		else (
 			return(false))))$
+
+/*
+For rules concerning quantifiers we have to keep track of what variables
+appear free in what formulas. For that purpose there should exists a global array
+FREEVARIABLES which contains this information. In the rules that follow the FREEVARIABLES
+refers exactly to such a dictionary where the formula is the key and the value is a set of
+variables e.q.
+
+FREEVARIABLES = [["A",{"x","y"}]]
+
+and the variables can be recovered using assoc("A",FREEVARIABLES)
+*/
 			
 /*
 Verify that elimination of universal quantifier has been
@@ -539,21 +552,77 @@ UniversalElimination(proposition, conclusion) := block([A],
 Verify that introduction of universal quantifier has been
 used correctly.
 
-@param[in] freeVariables	The free variables of active assumptions.
+@param[in] assumptions		The set of active assumptions.
 @param[in] proposition
 @param[in] conclusion
 
-@return						True iff 
+@return						True iff conclusion is of the form Ax proposition, where x does
+                            not appear as a free variable in active assumptions.
 */
-UniversalIntroduction(freeVariables, proposition, conclusion) := block([],
+UniversalIntroduction(assumptions, proposition, conclusion) := block([valid, variable],
 	if (not(safeCharat(conclusion,1) = "A")) then (
 		return(false))
 	else if (not(is(conclusion = sconcat(safeSubstring(conclusion,1,3),proposition)))) then (
 		return(false))
-	else if (elementp(safeCharat(conclusion,2),freeVariables)) then (
-		return(false))
 	else (
-		return(true)))$
+		valid: true,
+		variable: safeCharat(conclusion,2),
+		for i:1 thru length(assumptions) do (
+			if (elementp(variable, assoc(assumptions[i],FREEVARIABLES))) then (
+				valid: false)),
+		if (valid = true) then (
+			return(true))
+		else (
+			return(false))))$
+
+/*
+Verify that elimination of existential quantifier has been used
+correctly.
+
+@param[in] assumptions		The set of active assumptions.
+@param[in] knowledge		Set of propositions that have already been deduced from the
+                            active assumptions. Note that this set contains assumptions.
+@param[in]	conclusion		What is being deduced using existential elimination.
+
+@return						True iff the rule for eliminating existential quantifier has
+                            been used correctly.
+*/
+ExistentialElimination(assumptions, knowledge, conclusion) := block([valid, formula, d1, formulaFirstPart, formulaFirstPart, found, free],
+	/*
+	We proceed by checking every formula in knowledge and
+	will set vaild -> true, iff there exists formulas ExP,P->conclusion in
+	knowledge so that
+	1) x does not appear as a free variable in conclusion.
+	2) x does not appear as a free variable in active assumptions.
+	*/
+	valid: false,
+	for i:1 thru length(knowledge) do (
+		formula: knowledge[i],
+		d1: innerMostOperator(formula),
+		/*Is the formula of the form P->Q?*/
+		if is(safeCharat(formula, d1) = "-") then (
+			formulaFirstPart: safeSubstring(formula, 2, d1),
+			formulaSecondPart: safeSubstring(formula, d1 + 2, slength(formula)),
+			/*Is the formula of the form P->conclusion ?*/
+			if is(formulaSecondPart = conclusion) then (
+				/*Does Ex P belong to knowledge ?*/
+				found: false,
+				variable: "",
+				for i:1 thru length(knowledge) do (
+					if is(safeCharat(knowledge[i], 1) = "E") and is(safeSubstring(knowledge[i], 3, slength(knowledge[i]) + 1) = formulaFirstPart) then (
+						variable: safeCharat(knowledge[i],2),
+						found: true)),
+				if found = true then (
+					/*Does variable belong to the free variables of conclusion or active assumptions? */
+					free: false,
+					if elementp(variable, assoc(conclusion, FREEVARIABLES)) then (
+						free: true),
+					for i:1 thru length(assumptions) do (
+						if elementp(variable, assoc(assumptions[i], FREEVARIABLES)) then (
+							free: true)),
+					if free = false then (
+						valid: true))))),
+	return(valid))$
 
 /*
 Verify that introduction of existential quantifier has been
@@ -573,3 +642,56 @@ ExistentialIntroduction(proposition, conclusion) := block([A],
 			return(true))
 		else (
 			return(false))))$
+
+/*
+Short explanation of what InferenceVerifier actually does:
+	- Deduction is given as an array, assumptions are given as an array.
+	- Goes through the deduction line by line. Maintains an array called "knowledge".
+	  When a line has been checked that is not a declaration of assumption, the line
+	  is added into the knowledge.
+	- When a sub-deduction begins, we call recursively a new InferenceVerifier that
+	  receives as a parameter the knowledge already obtained in the outer deduction.
+	  Note that when sub-deduction ends, the knowledge obtained there is not returned
+	  back to the outer deduction. However the outer deduction obtains an implication
+	  P -> Q, where P is the first formula in the deduction and Q is the last formula.
+	- When the inference verifier spots an error, an erro code is returned. An error code
+	  is a pair [e,index], where index refers to the line where the error occured and e
+	  is the error that occured.
+	
+	  Below you can find explanations for the errors:
+	  + 0: Illegal use of OL.
+	  + 1: Illegal use of DT.
+*/
+
+/*
+
+*/		
+inferenceVerifier(assumptions, knowledge, deduction) := block([i, continue, firstPart, formulaPart],
+	i: 1,
+	continue: true,
+	while (i <= length(deduction) and continue = true) do (
+		if (is(safeCharat(deduction[i],1) = "<")) then (
+			return(false)
+			/*TODO*/
+		)
+		else (
+			firstPart: safeSubstring(deduction[i], 1, 3),
+			if is(firstPart = "OL") then (
+				formulaPart: checkDeductionRow(deduction[i]),
+				if (not(elementp(formulaPart, setify(assumptions)))) then (
+					continue: [0, i]))
+			else if is(firstPart = "DT") then (
+				j: 3,
+				while INTEGERP(safeCharat(deduction[i], j)) do (
+					j: j + 1),
+				index: CONVINT(safeSubstring(deduction[i], 3, j)),
+				formulaPart: checkDeductionRow(deduction[i]),
+				if index < 1 or index > length(deduction) or not(elementp(deduction[index],knowledge)) then (
+					continue: [1, i])
+				else if not(DT(deduction[index], formulaPart)) then (
+					continue: [1, i])
+				else (
+					/*TODO ADD SOMETHING TO KNOWLEDGE*/
+		),
+		i: i + 1),
+	return(continue))$
