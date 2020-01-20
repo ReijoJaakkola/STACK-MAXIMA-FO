@@ -659,8 +659,9 @@ Short explanation of what InferenceVerifier actually does:
 	  is the error that occured.
 	
 	  Below you can find explanations for the errors:
-	  + 0: Illegal use of OL.
-	  + 1: Illegal use of DT.
+	  + 0: No errors.
+	  + 1: Illegal use of OL.
+	  + 2: Illegal use of DT.
 */
 
 /*
@@ -679,7 +680,7 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, continue, firs
 			if is(firstPart = "OL") then (
 				formulaPart: checkDeductionRow(deduction[i]),
 				if (not(elementp(formulaPart, setify(assumptions)))) then (
-					continue: [0, i]))
+					continue: [1, i]))
 			else if is(firstPart = "DT") then (
 				j: 3,
 				while INTEGERP(safeCharat(deduction[i], j)) do (
@@ -687,9 +688,9 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, continue, firs
 				index: CONVINT(safeSubstring(deduction[i], 3, j)),
 				formulaPart: checkDeductionRow(deduction[i]),
 				if index < 1 or index > length(deduction) or not(elementp(deduction[index],knowledge)) then (
-					continue: [1, i])
+					continue: [2, i])
 				else if not(DT(deduction[index], formulaPart)) then (
-					continue: [1, i])
+					continue: [2, i])
 				else (
 					/*TODO ADD SOMETHING TO KNOWLEDGE*/
 		),
