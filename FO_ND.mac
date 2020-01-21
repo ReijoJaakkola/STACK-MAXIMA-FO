@@ -663,12 +663,13 @@ Short explanation of what InferenceVerifier actually does:
 	  + 1: Illegal use of OL.
 	  + 2: Illegal use of DT.
 	  + 3: Illegal use of DE.
+	  + 4: Illegal use of KT.
 */
 
 /*
 
 */		
-inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue, firstPart, formulaPart, index, index1, index2],
+inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue, firstPart, formulaPart, index, index1, index2, assumption1, assumption2],
 	i: 1,
 	continue: true,
 	while (i <= length(deduction) and continue = true) do (
@@ -708,6 +709,24 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 					continue: [3, i])
 				else if not(DE(checkDeductionRow(deduction[index]), setify(knowledge), formulaPart)) then (
 					continue: [3,i])
+				else (
+					push(formulaPart, knowledge)))
+			else if is(firstPart = "KT") then (
+				formulaPart: checkDeductionRow(deduction[i]),
+				j:3,
+				while INTEGERP(safeCharat(deduction[i], j)) do (
+					j:j+1),
+				k:j+1,
+				while INTEGERP(safeCharat(deduction[i], k)) do (
+					k:k+1),
+				index1: CONVINT(substring(deduction[i],3,j)),
+				index2: CONVINT(substring(deduction[i],j+1,k)),
+				assumption1: checkDeductionRow(deduction[index1]),
+				assumption2: checkDeductionRow(deduction[index2]),
+				if not(elementp(assumption1, setify(knowledge)) or elementp(assumption2, setify(knowledge))) then (
+					continue: [4, i])
+				else if not(KT(assumption1, assumption2, formulaPart)) then (
+					continue: [4, i])
 				else (
 					push(formulaPart, knowledge)))
 		),

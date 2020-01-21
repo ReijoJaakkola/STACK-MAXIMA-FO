@@ -2,9 +2,10 @@
 This file contains example deductions for testing purposes.
 */
 
---Valid deductions--
+------Valid deductions------
 
 ["OLA","DT1(A|B)"];
 ["OL(A->C)","OL(B->C)","OL(A|B)","DE3C"];
+["OLA","OLB","KT1,2(A&B)"];
 
---------------------
+----------------------------
