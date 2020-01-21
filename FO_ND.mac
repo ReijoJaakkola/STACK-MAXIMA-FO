@@ -398,15 +398,15 @@ Verify that elimination of conjunction has been used correctly.
 */
 KE(proposition, conclusion) := block([index, A, B],
 	/*Start by verifying that proposition has the form (A&B).*/
-	index: innerMostOperator(conclusion, 1),
-	if (not(is(safeCharat(conclusion, index) = "&"))) then (
+	index: innerMostOperator(proposition, 1),
+	if (not(is(safeCharat(proposition, index) = "&"))) then (
 		return(false))
 	else (
 		/*Extract the two subformulas that are joined togethor with conjunction.*/
 		A: safeSubstring(proposition,2,index),
 		B: safeSubstring(proposition,index+1,slength(proposition)),
 		/*Verify that conclusion is either of them.*/
-		if (is(proposition = A) or is(proposition = B)) then (
+		if (is(conclusion = A) or is(conclusion = B)) then (
 			return(true))
 		else (
 			return(false))))$
@@ -664,12 +664,13 @@ Short explanation of what InferenceVerifier actually does:
 	  + 2: Illegal use of DT.
 	  + 3: Illegal use of DE.
 	  + 4: Illegal use of KT.
+	  + 5: Illegal use of KE.
 */
 
 /*
 
 */		
-inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue, firstPart, formulaPart, index, index1, index2, assumption1, assumption2],
+inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue, firstPart, formulaPart, index, index1, index2, assumption, assumption1, assumption2],
 	i: 1,
 	continue: true,
 	while (i <= length(deduction) and continue = true) do (
@@ -727,6 +728,19 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 					continue: [4, i])
 				else if not(KT(assumption1, assumption2, formulaPart)) then (
 					continue: [4, i])
+				else (
+					push(formulaPart, knowledge)))
+			else if is(firstPart = "KE") then (
+				formulaPart: checkDeductionRow(deduction[i]),
+				j:3,
+				while INTEGERP(safeCharat(deduction[i], j)) do (
+					j:j+1),
+				index: CONVINT(substring(deduction[i],3,j)),
+				assumption: checkDeductionRow(deduction[index]),
+				if not(elementp(assumption, setify(knowledge))) then (
+					continue: [5, i])
+				else if not(KE(assumption, formulaPart)) then (
+					continue: [5, i])
 				else (
 					push(formulaPart, knowledge)))
 		),
