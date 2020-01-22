@@ -183,7 +183,32 @@ isFoFormula(F, atomicFormulas, variables):=block([],
 			return(isFoFormula(substring(F,2,D),atomicFormulas,variables) and isFoFormula(substring(F,D+3,slength(F)+1),atomicFormulas,variables)))
 		else (
 			return(false))))$
-			
+	
+/*
+Given a list of FO-formulas, create a conjunction them.
+
+@param[in] formulas		The FO-formulas.
+
+@return                 String representing the conjunction of the formulas.
+*/
+createConjunction(formulas) := block([conjunction],
+	if length(formulas) = 0 then (
+		return("(A|!A)")
+	)
+	else if length(formulas) = 1 then (
+		return(formulas[1])
+	)
+	else (
+		conjunction: sconcat("(", formulas[1]),
+		for i:2 thru length(formulas) do (
+			if i = length(formulas) then (
+				conjunction: sconcat(conjunction, "&", formulas[i]))
+			else (
+				conjunction: sconcat(conjunction,"&(",formulas[i]))),
+		for i:1 thru length(formulas) - 1 do (
+			conjunction: sconcat(conjunction,")")),
+		return(conjunction)))$
+
 /*
 Example deductions:
 OL ExEyA
@@ -670,13 +695,21 @@ Short explanation of what InferenceVerifier actually does:
 /*
 
 */		
-inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue, firstPart, formulaPart, index, index1, index2, assumption, assumption1, assumption2],
+inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue, firstPart, formulaPart, index, index1, index2, assumption, assumption1, assumption2, conclusion],
 	i: 1,
-	continue: true,
-	while (i <= length(deduction) and continue = true) do (
+	continue: [true, 0],
+	while (i <= length(deduction) and continue[2] = 0) do (
 		if (is(safeCharat(deduction[i],1) = "<")) then (
-			return(false)
-			/*TODO*/
+			/*Find the end of sub-deduction.*/
+			j:i,
+			while not(safeCharat(deduction[j],slength(deduction[j])) = ">") do (
+				j:j+1),
+			/*Create a sub-deduction.*/
+			subDeduction: makelist(0,0),
+			for k:i thru j do (
+				push(deduction[k],subDeduction)),
+			/*Verify the sub-deduction.*/
+			continue: inferenceVerifier([],knowledge,subDeduction)
 		)
 		else (
 			firstPart: safeSubstring(deduction[i], 1, 3),
@@ -755,4 +788,10 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 						push(formulaPart, knowledge))))
 		),
 		i: i + 1),
-	return(continue))$
+	if continue[2] = 0 then (
+		conclusion: checkDeductionRow(deduction[length(deduction)]),
+		continue[1]: sconcat("(",createConjunction(assumptions),"->",conclusion,")"),
+		return(continue)
+	)
+	else (
+		return(continue)))$
