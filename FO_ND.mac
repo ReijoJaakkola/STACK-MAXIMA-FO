@@ -694,10 +694,12 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 				formulaPart: checkDeductionRow(deduction[i]),
 				if index < 1 or index > length(deduction) or not(elementp(checkDeductionRow(deduction[index]),setify(knowledge))) then (
 					continue: [2, i])
-				else if not(DT(checkDeductionRow(deduction[index]), formulaPart)) then (
-					continue: [2, i])
 				else (
-					push(formulaPart, knowledge)))
+					assumption: checkDeductionRow(deduction[index]),
+					if not(DT(assumption, formulaPart)) then (
+						continue: [2, i])
+					else (
+						push(formulaPart, knowledge))))
 			else if is(firstPart = "DE") then (
 				formulaPart: checkDeductionRow(deduction[i]),
 				j:3,
@@ -706,12 +708,14 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 				index: CONVINT(safeSubstring(deduction[i],3,j)),
 				if index < 1 or index > length(deduction) then (
 					continue: [3, i])
-				else if not(elementp(checkDeductionRow(deduction[index]), setify(knowledge))) then (
-					continue: [3, i])
-				else if not(DE(checkDeductionRow(deduction[index]), setify(knowledge), formulaPart)) then (
-					continue: [3,i])
 				else (
-					push(formulaPart, knowledge)))
+					assumption: checkDeductionRow(deduction[index]),
+					if not(elementp(assumption, setify(knowledge))) then (
+						continue: [3, i])
+					else if not(DE(assumption, setify(knowledge), formulaPart)) then (
+						continue: [3,i])
+					else (
+						push(formulaPart, knowledge))))
 			else if is(firstPart = "KT") then (
 				formulaPart: checkDeductionRow(deduction[i]),
 				j:3,
@@ -722,27 +726,33 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 					k:k+1),
 				index1: CONVINT(substring(deduction[i],3,j)),
 				index2: CONVINT(substring(deduction[i],j+1,k)),
-				assumption1: checkDeductionRow(deduction[index1]),
-				assumption2: checkDeductionRow(deduction[index2]),
-				if not(elementp(assumption1, setify(knowledge)) or elementp(assumption2, setify(knowledge))) then (
-					continue: [4, i])
-				else if not(KT(assumption1, assumption2, formulaPart)) then (
+				if index1 < 1 or index2 < 1 or index1 > length(deduction) or index2 > length(deduction) then (
 					continue: [4, i])
 				else (
-					push(formulaPart, knowledge)))
+					assumption1: checkDeductionRow(deduction[index1]),
+					assumption2: checkDeductionRow(deduction[index2]),
+					if not(elementp(assumption1, setify(knowledge)) or elementp(assumption2, setify(knowledge))) then (
+						continue: [4, i])
+					else if not(KT(assumption1, assumption2, formulaPart)) then (
+						continue: [4, i])
+					else (
+						push(formulaPart, knowledge))))
 			else if is(firstPart = "KE") then (
 				formulaPart: checkDeductionRow(deduction[i]),
 				j:3,
 				while INTEGERP(safeCharat(deduction[i], j)) do (
 					j:j+1),
 				index: CONVINT(substring(deduction[i],3,j)),
-				assumption: checkDeductionRow(deduction[index]),
-				if not(elementp(assumption, setify(knowledge))) then (
-					continue: [5, i])
-				else if not(KE(assumption, formulaPart)) then (
+				if index < 1 or index > length(deduction) then (
 					continue: [5, i])
 				else (
-					push(formulaPart, knowledge)))
+					assumption: checkDeductionRow(deduction[index]),
+					if not(elementp(assumption, setify(knowledge))) then (
+						continue: [5, i])
+					else if not(KE(assumption, formulaPart)) then (
+						continue: [5, i])
+					else (
+						push(formulaPart, knowledge))))
 		),
 		i: i + 1),
 	return(continue))$
