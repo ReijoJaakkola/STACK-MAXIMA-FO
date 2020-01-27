@@ -8,5 +8,5 @@ This file contains example deductions for testing purposes.
 ["OL(A->C)","OL(B->C)","OL(A|B)","DE3C"];
 ["OLA","OLB","KT1,2(A&B)"];
 ["OL(A&B)","KE1A"];
-
+["OL(A|A)","<AOA>","DE1A"];
 ----------------------------
