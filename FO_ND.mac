@@ -254,7 +254,7 @@ checkDeductionRow(claim):=block([start,j,k,lastCharacter],
 	lastCharacter: safeCharat(claim,slength(claim)),
 	if is(lastCharacter = ">") then (
 		claim: safeSubstring(claim,1,slength(claim))),
-	if (start = "DT" or start = "DE" or start = "KE" or start = "RE" or start = "NE") then (
+	if (start = "DT" or start = "DE" or start = "KE" or start = "NE") then (
 		/*These rows should have the form STRING INTEGER STRING.*/
 	    j:3,
 		while (INTEGERP(safeCharat(claim,j)) and j <= slength(claim)) do (
@@ -278,7 +278,7 @@ checkDeductionRow(claim):=block([start,j,k,lastCharacter],
 				return(false))
 			else (
 				return(addOutermostBrackets(safeSubstring(claim,k,slength(claim)+1))))))
-	else if(start="IT" or start="NT" or start="OL" or start="AO" or start="ET") then (
+	else if(start="IT" or start="NT" or start="OL" or start="AO" or start="ET" or start="RE") then (
 		/*These rows just have the form STRING STRING.*/
 		return(addOutermostBrackets(safeSubstring(claim,3,slength(claim)+1))))
 	else (
@@ -450,7 +450,7 @@ Verify that introduction of conjunction has been used correctly.
                         or (proposition2&proposition1).
 */
 KT(proposition1, proposition2, conclusion) := block([],
-	if(is(sconcat("(",proposition1,"&",proposition2,")")=conclusion) or is(sconcat("(",proposition2,&,proposition1,")")=conclusion)) then (
+	if(is(sconcat("(",proposition1,"&",proposition2,")")=conclusion) or is(sconcat("(",proposition2,"&",proposition1,")")=conclusion)) then (
 		return(true))
 	else (
 		return(false)))$
@@ -499,12 +499,12 @@ NT(propositions, conclusion) := block([valid, conc, assm, index1, index2, assm1,
 Verify that re-introduction of known proposition is used
 correctly.
 
-@param[in] proposition1
-@param[in] proposition2
+@param[in] proposition
+@param[in] knowledge
 
-@return						True iff proposition1 == proposition2.
+@return						True iff elementp(proposition, knowledge).
 */
-RE(proposition1,proposition2):=block([], return (is(proposition1 = proposition2)))$
+RE(proposition, knowledge):=block([], return (elementp(proposition, knowledge)))$
 
 /*
 Verify that elimination of equivalence has been used
@@ -695,6 +695,9 @@ Short explanation of what InferenceVerifier actually does:
 	  + 5: Illegal use of KE.
 	  + 6: Illegal use of IT.
 	  + 7: Illegal use of IE.
+	  + 8: Illegal use of NT.
+	  + 9: Illegal use of NE.
+	  + 10: Illegal use of RE.
 */
 
 /*
@@ -713,6 +716,7 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 			subDeduction: makelist(0,0),
 			for k:i thru j do (
 				push(deduction[k],subDeduction)),
+			subDeduction: reverse(subDeduction),
 			/*Remove the signs representing sub-deduction.*/
 			subDeduction[1]: safeSubstring(subDeduction[1],2,slength(subDeduction[1])+1),
 			subDeduction[length(subDeduction)]: safeSubstring(subDeduction[length(subDeduction)],1,slength(subDeduction[length(subDeduction)])),
@@ -827,6 +831,30 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 						continue: [7, i])
 					else (
 						push(formulaPart, knowledge))))
+			else if is(firstPart = "NT") then (
+				formulaPart: checkDeductionRow(deduction[i]),
+				if not(NT(setify(knowledge),formulaPart)) then (
+					continue: [8, i])
+				else (
+					push(formulaPart, knowledge)))
+			else if is(firstPart = "NE") then (
+				formulaPart: checkDeductionRow(deduction[i]),
+				j:3,
+				while INTEGERP(safeCharat(deduction[i], j)) do (
+					j:j+1),
+				index: CONVINT(substring(deduction[i],3,j)),
+				if index < 1 or index > length(deduction) then (
+					continue: [9, i])
+				else (
+					assumption: checkDeductionRow(deduction[index]),
+					if not(NE(assumption, formulaPart)) then (
+						continue: [9, i])
+					else (
+						push(formulaPart, knowledge))))
+			else if is(firstPart = "RE") then (
+				formulaPart: checkDeductionRow(deduction[i]),
+				if not(RE(formulaPart, setify(knowledge))) then (
+					continue: [10, i]))
 		),
 		i: i + 1),
 	if continue[2] = 0 then (
