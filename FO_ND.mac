@@ -693,6 +693,8 @@ Short explanation of what InferenceVerifier actually does:
 	  + 3: Illegal use of DE.
 	  + 4: Illegal use of KT.
 	  + 5: Illegal use of KE.
+	  + 6: Illegal use of IT.
+	  + 7: Illegal use of IE.
 */
 
 /*
@@ -796,6 +798,33 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 						continue: [5, i])
 					else if not(KE(assumption, formulaPart)) then (
 						continue: [5, i])
+					else (
+						push(formulaPart, knowledge))))
+			else if is(firstPart = "IT") then (
+				formulaPart: checkDeductionRow(deduction[i]),
+				if not(IT(formulaPart, setify(knowledge))) then (
+					continue: [6, i])
+				else (
+					push(formulaPart, knowledge)))
+			else if is(firstPart = "IE") then (
+				formulaPart: checkDeductionRow(deduction[i]),
+				j:3,
+				while INTEGERP(safeCharat(deduction[i], j)) do (
+					j:j+1),
+				k:j+1,
+				while INTEGERP(safeCharat(deduction[i], k)) do (
+					k:k+1),
+				index1: CONVINT(substring(deduction[i],3,j)),
+				index2: CONVINT(substring(deduction[i],j+1,k)),
+				if index1 < 1 or index2 < 1 or index1 > length(deduction) or index2 > length(deduction) then (
+					continue: [7, i])
+				else (
+					assumption1: checkDeductionRow(deduction[index1]),
+					assumption2: checkDeductionRow(deduction[index2]),
+					if not(elementp(assumption1, setify(knowledge)) or elementp(assumption2, setify(knowledge))) then (
+						continue: [7, i])
+					else if not(IE(assumption1, assumption2, formulaPart) or IE(assumption2, assumption1, formulaPart)) then (
+						continue: [7, i])
 					else (
 						push(formulaPart, knowledge))))
 		),
