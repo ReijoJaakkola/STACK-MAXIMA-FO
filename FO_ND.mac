@@ -41,6 +41,16 @@ safeSubstring(A,startIndex,endIndex) := block([],
 		return(substring(A,startIndex,endIndex))))$
 
 /*
+Returns a copy of given array.
+*/
+copyArray(array) := block([copy],
+	copy: makelist(0,0),
+	for i:1 thru length(array) do (
+		push(array[i],copy)),
+	copy: reverse(copy),
+	return(copy))$
+
+/*
 Helper function for checking that a given string is 
 representing a number.
 
@@ -687,6 +697,7 @@ Short explanation of what InferenceVerifier actually does:
 	  is the error that occured.
 	
 	  Below you can find explanations for the errors:
+	  + -1:Expression was not legal.
 	  + 0: No errors.
 	  + 1: Illegal use of OL.
 	  + 2: Illegal use of DT.
@@ -703,34 +714,26 @@ Short explanation of what InferenceVerifier actually does:
 /*
 
 */		
-inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue, firstPart, formulaPart, index, index1, index2, assumption, assumption1, assumption2, conclusion],
-	i: 1,
-	continue: [true, 0],
+inferenceVerifier(start, assumptions, knowledge, deduction) := block([i, j, k, continue, copyDeduction, firstPart, formulaPart, index, index1, index2, assumption, assumption1, assumption2, conclusion],
+	i: start,
+	continue: [true, 0, 0],
 	while (i <= length(deduction) and continue[2] = 0) do (
 		if (is(safeCharat(deduction[i],1) = "<")) then (
-			/*Find the end of sub-deduction.*/
-			j:i,
-			while not(safeCharat(deduction[j],slength(deduction[j])) = ">") do (
-				j:j+1),
-			/*Create a sub-deduction.*/
-			subDeduction: makelist(0,0),
-			for k:i thru j do (
-				push(deduction[k],subDeduction)),
-			subDeduction: reverse(subDeduction),
-			/*Remove the signs representing sub-deduction.*/
-			subDeduction[1]: safeSubstring(subDeduction[1],2,slength(subDeduction[1])+1),
-			subDeduction[length(subDeduction)]: safeSubstring(subDeduction[length(subDeduction)],1,slength(subDeduction[length(subDeduction)])),
-			/*Verify the sub-deduction.*/
-			continue: inferenceVerifier([],knowledge,subDeduction),
-			if continue[2] = 0 then (
-				push(continue[1],knowledge))
+			deductionCopy: copyArray(deduction),
+			deductionCopy[i]: safeSubstring(deductionCopy[i],2,slength(deductionCopy[i])+1),
+			continue: inferenceVerifier(i,[],knowledge,deductionCopy),
+			if (continue[2] = 0) then (
+				/*Update knowledge.*/
+				push(continue[1],knowledge),
+				/*Update where we are in the proof.*/
+				i: continue[3])
 		)
 		else (
 			firstPart: safeSubstring(deduction[i], 1, 3),
 			if is(firstPart = "OL") then (
 				formulaPart: checkDeductionRow(deduction[i]),
 				if not(elementp(formulaPart, setify(assumptions))) then (
-					continue: [1, i])
+					continue: [1, 1, i])
 				else (
 					push(formulaPart, knowledge)))
 			else if is(firstPart = "AO") then (
@@ -744,11 +747,11 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 				index: CONVINT(safeSubstring(deduction[i], 3, j)),
 				formulaPart: checkDeductionRow(deduction[i]),
 				if index < 1 or index > length(deduction) or not(elementp(checkDeductionRow(deduction[index]),setify(knowledge))) then (
-					continue: [2, i])
+					continue: [2, 1, i])
 				else (
 					assumption: checkDeductionRow(deduction[index]),
 					if not(DT(assumption, formulaPart)) then (
-						continue: [2, i])
+						continue: [2, 1, i])
 					else (
 						push(formulaPart, knowledge))))
 			else if is(firstPart = "DE") then (
@@ -758,13 +761,13 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 					j: j + 1),
 				index: CONVINT(safeSubstring(deduction[i],3,j)),
 				if index < 1 or index > length(deduction) then (
-					continue: [3, i])
+					continue: [3, 1, i])
 				else (
 					assumption: checkDeductionRow(deduction[index]),
 					if not(elementp(assumption, setify(knowledge))) then (
-						continue: [3, i])
+						continue: [3, 1, i])
 					else if not(DE(assumption, setify(knowledge), formulaPart)) then (
-						continue: [3,i])
+						continue: [3, 1, i])
 					else (
 						push(formulaPart, knowledge))))
 			else if is(firstPart = "KT") then (
@@ -778,14 +781,14 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 				index1: CONVINT(substring(deduction[i],3,j)),
 				index2: CONVINT(substring(deduction[i],j+1,k)),
 				if index1 < 1 or index2 < 1 or index1 > length(deduction) or index2 > length(deduction) then (
-					continue: [4, i])
+					continue: [4, 1, i])
 				else (
 					assumption1: checkDeductionRow(deduction[index1]),
 					assumption2: checkDeductionRow(deduction[index2]),
 					if not(elementp(assumption1, setify(knowledge)) or elementp(assumption2, setify(knowledge))) then (
-						continue: [4, i])
+						continue: [4, 1, i])
 					else if not(KT(assumption1, assumption2, formulaPart)) then (
-						continue: [4, i])
+						continue: [4, 1, i])
 					else (
 						push(formulaPart, knowledge))))
 			else if is(firstPart = "KE") then (
@@ -795,19 +798,19 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 					j:j+1),
 				index: CONVINT(substring(deduction[i],3,j)),
 				if index < 1 or index > length(deduction) then (
-					continue: [5, i])
+					continue: [5, 1, i])
 				else (
 					assumption: checkDeductionRow(deduction[index]),
 					if not(elementp(assumption, setify(knowledge))) then (
-						continue: [5, i])
+						continue: [5, 1, i])
 					else if not(KE(assumption, formulaPart)) then (
-						continue: [5, i])
+						continue: [5, 1, i])
 					else (
 						push(formulaPart, knowledge))))
 			else if is(firstPart = "IT") then (
 				formulaPart: checkDeductionRow(deduction[i]),
 				if not(IT(formulaPart, setify(knowledge))) then (
-					continue: [6, i])
+					continue: [6, 1, i])
 				else (
 					push(formulaPart, knowledge)))
 			else if is(firstPart = "IE") then (
@@ -821,20 +824,20 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 				index1: CONVINT(substring(deduction[i],3,j)),
 				index2: CONVINT(substring(deduction[i],j+1,k)),
 				if index1 < 1 or index2 < 1 or index1 > length(deduction) or index2 > length(deduction) then (
-					continue: [7, i])
+					continue: [7, 1, i])
 				else (
 					assumption1: checkDeductionRow(deduction[index1]),
 					assumption2: checkDeductionRow(deduction[index2]),
 					if not(elementp(assumption1, setify(knowledge)) or elementp(assumption2, setify(knowledge))) then (
-						continue: [7, i])
+						continue: [7, 1, i])
 					else if not(IE(assumption1, assumption2, formulaPart) or IE(assumption2, assumption1, formulaPart)) then (
-						continue: [7, i])
+						continue: [7, 1, i])
 					else (
 						push(formulaPart, knowledge))))
 			else if is(firstPart = "NT") then (
 				formulaPart: checkDeductionRow(deduction[i]),
 				if not(NT(setify(knowledge),formulaPart)) then (
-					continue: [8, i])
+					continue: [8, 1, i])
 				else (
 					push(formulaPart, knowledge)))
 			else if is(firstPart = "NE") then (
@@ -844,21 +847,33 @@ inferenceVerifier(assumptions, knowledge, deduction) := block([i, j, k, continue
 					j:j+1),
 				index: CONVINT(substring(deduction[i],3,j)),
 				if index < 1 or index > length(deduction) then (
-					continue: [9, i])
+					continue: [9, 1, i])
 				else (
 					assumption: checkDeductionRow(deduction[index]),
 					if not(NE(assumption, formulaPart)) then (
-						continue: [9, i])
+						continue: [9, 1, i])
 					else (
 						push(formulaPart, knowledge))))
 			else if is(firstPart = "RE") then (
 				formulaPart: checkDeductionRow(deduction[i]),
 				if not(RE(formulaPart, setify(knowledge))) then (
-					continue: [10, i]))
-		),
-		i: i + 1),
-	if continue[2] = 0 then (
-		conclusion: checkDeductionRow(deduction[length(deduction)]),
+					continue: [10, 1, i]))
+			else (
+				continue: [-1, 1, i]),
+			if (continue[2] = 0 and safeCharat(deduction[i],slength(deduction[i])) = ">") then (
+				/*Update what is the next step of the deduction.*/
+				continue[3]: i + 1,
+				/*Break the while loop.*/
+				i: length(deduction) + 1
+			)
+			else (
+				i: i + 1,
+				continue[3]: i
+			)
+		)
+	),
+	if (continue[2] = 0) then (
+		conclusion: checkDeductionRow(deduction[continue[3] - 1]),
 		continue[1]: sconcat("(",createConjunction(assumptions),"->",conclusion,")"),
 		return(continue)
 	)
