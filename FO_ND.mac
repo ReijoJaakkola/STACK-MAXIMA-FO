@@ -220,6 +220,28 @@ createConjunction(formulas) := block([conjunction],
 		return(conjunction)))$
 
 /*
+Given a FO-formula, returns the set of free variables it contains.
+*/
+freeVariables(formula, free) := block([variable, subformula, freeVariablesOfSubFormula],
+	if notContainsLogicalConstants(formula) = true then (
+		return(assoc(safeCharat(formula,1), free)))
+	else if safeCharat(formula, 1) = "A" or safeCharat(formula, 2) = "E" then (
+		variable: safeCharat(formula, 2),
+		subformula: safeSubstring(formula, 3, slength(formula) + 1),
+		freeVariablesOfSubFormula: freeVariables(subformula, free),
+		return(disjoin(variable, freeVariablesOfSubFormula)))
+	else (
+		D: innerMostOperator(formula, 1),
+		if (safeCharat(formula,D) = "|" or safeCharat(formula,D) = "&") then (
+			return(union(freeVariables(safeSubstring(formula,2,D),free), freeVariables(safeSubstring(formula,D+1,slength(formula)),free))))
+		else if (safeCharat(formula,D) = "-") then (
+			return(union(freeVariables(safeSubstring(formula,2,D),free), freeVariables(safeSubstring(formula,D+2,slength(formula)),free))))
+		else if (safeCharat(formula,D) = "<") then (
+			return(union(freeVariables(safeSubstring(formula,2,D),free), freeVariables(safeSubstring(formula,D+3,slength(formula)),free))))
+		else (
+			return(false))))$
+
+/*
 Example deductions:
 OL ExEyA
 		<AO EyA
@@ -264,7 +286,7 @@ checkDeductionRow(claim):=block([start,j,k,lastCharacter],
 	lastCharacter: safeCharat(claim,slength(claim)),
 	if is(lastCharacter = ">") then (
 		claim: safeSubstring(claim,1,slength(claim))),
-	if (start = "DT" or start = "DE" or start = "KE" or start = "NE") then (
+	if (start = "DT" or start = "DE" or start = "KE" or start = "NE" or start = "AT" or start = "AE") then (
 		/*These rows should have the form STRING INTEGER STRING.*/
 	    j:3,
 		while (INTEGERP(safeCharat(claim,j)) and j <= slength(claim)) do (
@@ -273,7 +295,7 @@ checkDeductionRow(claim):=block([start,j,k,lastCharacter],
 			return(false))
 		else (
 			return(addOutermostBrackets(safeSubstring(claim,j,slength(claim)+1)))))
-	else if(start = "KT" or start = "IE" or start = "EE") then (
+	else if(start = "KT" or start = "IE") then (
 		/*These rows should have the form STRING INTEGER , INTEGER STRING.*/
 		j:3,
 		while (INTEGERP(safeCharat(claim,j)) and j <= slength(claim)) do (
@@ -288,7 +310,7 @@ checkDeductionRow(claim):=block([start,j,k,lastCharacter],
 				return(false))
 			else (
 				return(addOutermostBrackets(safeSubstring(claim,k,slength(claim)+1))))))
-	else if(start="IT" or start="NT" or start="OL" or start="AO" or start="ET" or start="RE") then (
+	else if(start="IT" or start="NT" or start="OL" or start="AO" or start="RE") then (
 		/*These rows just have the form STRING STRING.*/
 		return(addOutermostBrackets(safeSubstring(claim,3,slength(claim)+1))))
 	else (
@@ -562,9 +584,9 @@ FREEVARIABLES which contains this information. In the rules that follow the FREE
 refers exactly to such a dictionary where the formula is the key and the value is a set of
 variables e.q.
 
-FREEVARIABLES = [["A",{"x","y"}]]
+FREEVARIABLES = [["R",{"x","y"}]]
 
-and the variables can be recovered using assoc("A",FREEVARIABLES)
+and the variables can be recovered using assoc("R",FREEVARIABLES)
 */
 			
 /*
@@ -606,7 +628,8 @@ UniversalIntroduction(assumptions, proposition, conclusion) := block([valid, var
 		valid: true,
 		variable: safeCharat(conclusion,2),
 		for i:1 thru length(assumptions) do (
-			if (elementp(variable, assoc(assumptions[i],FREEVARIABLES))) then (
+			freeVariablesOfFormula: freeVariables(assumptions[i], FREEVARIABLES), 
+			if (elementp(variable, freeVariablesOfFormula)) then (
 				valid: false)),
 		if (valid = true) then (
 			return(true))
@@ -693,7 +716,7 @@ Short explanation of what InferenceVerifier actually does:
 	  back to the outer deduction. However the outer deduction obtains an implication
 	  P -> Q, where P is the first formula in the deduction and Q is the last formula.
 	- When the inference verifier spots an error, an erro code is returned. An error code
-	  is a pair [e,index], where index refers to the line where the error occured and e
+	  is a triple [e,1,index], where index refers to the line where the error occured and e
 	  is the error that occured.
 	
 	  Below you can find explanations for the errors:
@@ -709,6 +732,8 @@ Short explanation of what InferenceVerifier actually does:
 	  + 8: Illegal use of NT.
 	  + 9: Illegal use of NE.
 	  + 10: Illegal use of RE.
+	  + 11: Illegal use of AT.
+	  + 12: Illegal use of AE.
 */
 
 /*
@@ -858,6 +883,36 @@ inferenceVerifier(start, assumptions, knowledge, deduction) := block([i, j, k, c
 				formulaPart: checkDeductionRow(deduction[i]),
 				if not(RE(formulaPart, setify(knowledge))) then (
 					continue: [10, 1, i]))
+			else if is(firstPart = "AT") then (
+				formulaPart: checkDeductionRow(deduction[i]),
+				j:3,
+				while INTEGERP(safeCharat(deduction[i], j)) do (
+					j:j+1),
+				index: CONVINT(substring(deduction[i],3,j)),
+				if index < 1 or index > length(deduction) then (
+					continue: [11, 1, i])
+				else (
+					assumption: checkDeductionRow(deduction[index]),
+					if not(UniversalIntroduction(assumptions, assumption, formulaPart)) then (
+						continue: [11, 1, i])
+					else (
+						push(formulaPart, knowledge)))
+			)
+			else if is(firstPart = "AE") then (
+				formulaPart: checkDeductionRow(deduction[i]),
+				j:3,
+				while INTEGERP(safeCharat(deduction[i], j)) do (
+					j:j+1),
+				index: CONVINT(substring(deduction[i],3,j)),
+				if index < 1 or index > length(deduction) then (
+					continue: [12, 1, i])
+				else (
+					assumption: checkDeductionRow(deduction[index]),
+					if not(UniversalElimination(assumption, formulaPart)) then (
+						continue: [12, 1, i])
+					else (
+						push(formulaPart, knowledge)))
+			)
 			else (
 				continue: [-1, 1, i]),
 			if (continue[2] = 0 and safeCharat(deduction[i],slength(deduction[i])) = ">") then (
