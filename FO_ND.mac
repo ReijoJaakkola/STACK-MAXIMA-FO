@@ -225,7 +225,7 @@ Given a FO-formula, returns the set of free variables it contains.
 freeVariables(formula, free) := block([variable, subformula, freeVariablesOfSubFormula],
 	if notContainsLogicalConstants(formula) = true then (
 		return(assoc(safeCharat(formula,1), free)))
-	else if safeCharat(formula, 1) = "A" or safeCharat(formula, 2) = "E" then (
+	else if safeCharat(formula, 1) = "A" or safeCharat(formula, 1) = "E" then (
 		variable: safeCharat(formula, 2),
 		subformula: safeSubstring(formula, 3, slength(formula) + 1),
 		freeVariablesOfSubFormula: freeVariables(subformula, free),
@@ -286,7 +286,7 @@ checkDeductionRow(claim):=block([start,j,k,lastCharacter],
 	lastCharacter: safeCharat(claim,slength(claim)),
 	if is(lastCharacter = ">") then (
 		claim: safeSubstring(claim,1,slength(claim))),
-	if (start = "DT" or start = "DE" or start = "KE" or start = "NE" or start = "AT" or start = "AE") then (
+	if (start = "DT" or start = "DE" or start = "KE" or start = "NE" or start = "AT" or start = "AE" or start = "ET") then (
 		/*These rows should have the form STRING INTEGER STRING.*/
 	    j:3,
 		while (INTEGERP(safeCharat(claim,j)) and j <= slength(claim)) do (
@@ -310,7 +310,7 @@ checkDeductionRow(claim):=block([start,j,k,lastCharacter],
 				return(false))
 			else (
 				return(addOutermostBrackets(safeSubstring(claim,k,slength(claim)+1))))))
-	else if(start="IT" or start="NT" or start="OL" or start="AO" or start="RE") then (
+	else if(start="IT" or start="NT" or start="OL" or start="AO" or start="RE" or start = "EE") then (
 		/*These rows just have the form STRING STRING.*/
 		return(addOutermostBrackets(safeSubstring(claim,3,slength(claim)+1))))
 	else (
@@ -648,7 +648,7 @@ correctly.
 @return						True iff the rule for eliminating existential quantifier has
                             been used correctly.
 */
-ExistentialElimination(assumptions, knowledge, conclusion) := block([valid, formula, d1, formulaFirstPart, formulaFirstPart, found, free],
+ExistentialElimination(assumptions, knowledge, conclusion) := block([valid, setFree, formula, d1, formulaFirstPart, found, free],
 	/*
 	We proceed by checking every formula in knowledge and
 	will set vaild -> true, iff there exists formulas ExP,P->conclusion in
@@ -659,7 +659,7 @@ ExistentialElimination(assumptions, knowledge, conclusion) := block([valid, form
 	valid: false,
 	for i:1 thru length(knowledge) do (
 		formula: knowledge[i],
-		d1: innerMostOperator(formula),
+		d1: innerMostOperator(formula,1),
 		/*Is the formula of the form P->Q?*/
 		if is(safeCharat(formula, d1) = "-") then (
 			formulaFirstPart: safeSubstring(formula, 2, d1),
@@ -674,14 +674,17 @@ ExistentialElimination(assumptions, knowledge, conclusion) := block([valid, form
 						variable: safeCharat(knowledge[i],2),
 						found: true)),
 				if found = true then (
-					/*Does variable belong to the free variables of conclusion or active assumptions? */
+					/*Does variable belong to the free variables of conclusion or active assumptions (beside formulaFirstPart)? */
 					free: false,
-					if elementp(variable, assoc(conclusion, FREEVARIABLES)) then (
+					setFree: freeVariables(conclusion,FREEVARIABLES),
+					if elementp(variable, setFree) then (
 						free: true),
 					for i:1 thru length(assumptions) do (
-						if elementp(variable, assoc(assumptions[i], FREEVARIABLES)) then (
-							free: true)),
-					if free = false then (
+						if not(is(formulaFirstPart = assumptions[i])) then (
+							setFree: freeVariables(assumptions[i],FREEVARIABLES),
+							if elementp(variable, setFree) then (
+								free: true))),
+					if (free = false) then (
 						valid: true))))),
 	return(valid))$
 
@@ -734,6 +737,8 @@ Short explanation of what InferenceVerifier actually does:
 	  + 10: Illegal use of RE.
 	  + 11: Illegal use of AT.
 	  + 12: Illegal use of AE.
+	  + 13: Illegal use of ET.
+	  + 14: Illegal use of EE.
 */
 
 /*
@@ -913,6 +918,28 @@ inferenceVerifier(start, assumptions, knowledge, deduction) := block([i, j, k, c
 					else (
 						push(formulaPart, knowledge)))
 			)
+			else if is(firstPart = "ET") then (
+				formulaPart: checkDeductionRow(deduction[i]),
+				j:3,
+				while INTEGERP(safeCharat(deduction[i], j)) do (
+					j:j+1),
+				index: CONVINT(substring(deduction[i],3,j)),
+				if index < 1 or index > length(deduction) then (
+					continue: [12, 1, i])
+				else (
+					assumption: checkDeductionRow(deduction[index]),
+					if not(ExistentialIntroduction(assumption, formulaPart)) then (
+						continue: [13, 1, i])
+					else (
+						push(formulaPart, knowledge)))
+			)
+			else if is(firstPart = "EE") then (
+				formulaPart: checkDeductionRow(deduction[i]),
+				if not(ExistentialElimination(assumptions, knowledge, formulaPart)) then (
+					continue: [14, 1, i])
+				else (
+					push(formulaPart, knowledge))
+			)	
 			else (
 				continue: [-1, 1, i]),
 			if (continue[2] = 0 and safeCharat(deduction[i],slength(deduction[i])) = ">") then (
