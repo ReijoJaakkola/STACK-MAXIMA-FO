@@ -43,10 +43,10 @@ safeSubstring(A,startIndex,endIndex) := block([],
 /*
 Returns a copy of given array.
 */
-copyArray(array) := block([copy],
+copyArray(arrray) := block([copy],
 	copy: makelist(0,0),
-	for i:1 thru length(array) do (
-		push(array[i],copy)),
+	for i:1 thru length(arrray) do (
+		push(arrray[i],copy)),
 	copy: reverse(copy),
 	return(copy))$
 
