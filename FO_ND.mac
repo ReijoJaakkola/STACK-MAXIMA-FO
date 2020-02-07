@@ -950,7 +950,9 @@ inferenceVerifier(start, assumptions, knowledge, deduction) := block([i, j, k, c
 			)
 			else (
 				i: i + 1,
-				continue[3]: i
+				if (continue[2] = 0) then (
+					continue[3]: i
+				)
 			)
 		)
 	),
