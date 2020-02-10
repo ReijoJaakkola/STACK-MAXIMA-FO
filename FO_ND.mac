@@ -6,7 +6,7 @@ Code for verifying natural deduction proofs with FO.
 
 /*
 As usual, connectives are denoted by
-A = forall, E = exists, ! = not, & = and, | = or, ->, if...then, <-> = iff
+U = forall, E = exists, ! = not, & = and, | = or, ->, if...then, <-> = iff
 */
 
 /*
@@ -158,7 +158,7 @@ Function which checks whether a given formula contains any logical constants.
 
 */
 notContainsLogicalConstants(F):=block([Formula],
-    cleanedFormula: clearString(["A","E","!","&","|","->","<->"],F),
+    cleanedFormula: clearString(["U","E","!","&","|","->","<->"],F),
     if (slength(cleanedFormula) = slength(F)) then (return(true))
     else (return(false)))$
 
@@ -178,7 +178,7 @@ isFoFormula(F, atomicFormulas, variables):=block([],
 		return(elementp(F, atomicFormulas)))
 	else if (safeCharat(F,1) = "!") then (
 		return(true))
-	else if (safeCharat(F,1) = "A" or safeCharat(F,1) = "E") then (
+	else if (safeCharat(F,1) = "U" or safeCharat(F,1) = "E") then (
 		if (not(elementp(safeCharat(F,2), variables))) then (
 			return(false))
 		else (
@@ -225,7 +225,7 @@ Given a FO-formula, returns the set of free variables it contains.
 freeVariables(formula, free) := block([variable, subformula, freeVariablesOfSubFormula],
 	if notContainsLogicalConstants(formula) = true then (
 		return(assoc(safeCharat(formula,1), free)))
-	else if safeCharat(formula, 1) = "A" or safeCharat(formula, 1) = "E" then (
+	else if safeCharat(formula, 1) = "U" or safeCharat(formula, 1) = "E" then (
 		variable: safeCharat(formula, 2),
 		subformula: safeSubstring(formula, 3, slength(formula) + 1),
 		freeVariablesOfSubFormula: freeVariables(subformula, free),
@@ -286,7 +286,7 @@ checkDeductionRow(claim):=block([start,j,k,lastCharacter],
 	lastCharacter: safeCharat(claim,slength(claim)),
 	if is(lastCharacter = ">") then (
 		claim: safeSubstring(claim,1,slength(claim))),
-	if (start = "DT" or start = "DE" or start = "KE" or start = "NE" or start = "AT" or start = "AE" or start = "ET") then (
+	if (start = "DT" or start = "DE" or start = "KE" or start = "NE" or start = "UT" or start = "UE" or start = "ET") then (
 		/*These rows should have the form STRING INTEGER STRING.*/
 	    j:3,
 		while (INTEGERP(safeCharat(claim,j)) and j <= slength(claim)) do (
@@ -596,10 +596,10 @@ used correctly.
 @param[in]	proposition
 @param[in]	conclusion
 
-@return						True iff Ax conclusion = proposition.
+@return						True iff Ux conclusion = proposition.
 */
 UniversalElimination(proposition, conclusion) := block([A],
-	if (not(safeCharat(proposition,1) = "A")) then (
+	if (not(safeCharat(proposition,1) = "U")) then (
 		return(false))
 	else (
 		A: safeSubstring(proposition,3,slength(proposition)+1),
@@ -616,11 +616,11 @@ used correctly.
 @param[in] proposition
 @param[in] conclusion
 
-@return						True iff conclusion is of the form Ax proposition, where x does
+@return						True iff conclusion is of the form Ux proposition, where x does
                             not appear as a free variable in active assumptions.
 */
 UniversalIntroduction(assumptions, proposition, conclusion) := block([valid, variable],
-	if (not(safeCharat(conclusion,1) = "A")) then (
+	if (not(safeCharat(conclusion,1) = "U")) then (
 		return(false))
 	else if (not(is(conclusion = sconcat(safeSubstring(conclusion,1,3),proposition)))) then (
 		return(false))
@@ -735,8 +735,8 @@ Short explanation of what InferenceVerifier actually does:
 	  + 8: Illegal use of NT.
 	  + 9: Illegal use of NE.
 	  + 10: Illegal use of RE.
-	  + 11: Illegal use of AT.
-	  + 12: Illegal use of AE.
+	  + 11: Illegal use of UT.
+	  + 12: Illegal use of UE.
 	  + 13: Illegal use of ET.
 	  + 14: Illegal use of EE.
 */
@@ -888,7 +888,7 @@ inferenceVerifier(start, assumptions, knowledge, deduction) := block([i, j, k, c
 				formulaPart: checkDeductionRow(deduction[i]),
 				if not(RE(formulaPart, setify(knowledge))) then (
 					continue: [10, 1, i]))
-			else if is(firstPart = "AT") then (
+			else if is(firstPart = "UT") then (
 				formulaPart: checkDeductionRow(deduction[i]),
 				j:3,
 				while INTEGERP(safeCharat(deduction[i], j)) do (
@@ -903,7 +903,7 @@ inferenceVerifier(start, assumptions, knowledge, deduction) := block([i, j, k, c
 					else (
 						push(formulaPart, knowledge)))
 			)
-			else if is(firstPart = "AE") then (
+			else if is(firstPart = "UE") then (
 				formulaPart: checkDeductionRow(deduction[i]),
 				j:3,
 				while INTEGERP(safeCharat(deduction[i], j)) do (
