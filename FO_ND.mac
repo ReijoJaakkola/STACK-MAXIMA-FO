@@ -186,11 +186,11 @@ isFoFormula(F, atomicFormulas, variables):=block([],
 	else (
 		D: innerMostOperator(F, 1),
 		if (safeCharat(F,D) = "|" or safeCharat(F,D) = "&") then (
-			return(isFoFormula(substring(F,2,D),atomicFormulas,variables) and isFoFormula(substring(F,D+1,slength(F)+1),atomicFormulas,variables)))
+			return(isFoFormula(substring(F,2,D),atomicFormulas,variables) and isFoFormula(substring(F,D+1,slength(F)),atomicFormulas,variables)))
 		else if (safeCharat(F,D) = "-") then (
-			return(isFoFormula(substring(F,2,D),atomicFormulas,variables) and isFoFormula(substring(F,D+2,slength(F)+1),atomicFormulas,variables)))
+			return(isFoFormula(substring(F,2,D),atomicFormulas,variables) and isFoFormula(substring(F,D+2,slength(F)),atomicFormulas,variables)))
 		else if (safeCharat(F,D) = "<") then (
-			return(isFoFormula(substring(F,2,D),atomicFormulas,variables) and isFoFormula(substring(F,D+3,slength(F)+1),atomicFormulas,variables)))
+			return(isFoFormula(substring(F,2,D),atomicFormulas,variables) and isFoFormula(substring(F,D+3,slength(F)),atomicFormulas,variables)))
 		else (
 			return(false))))$
 	
