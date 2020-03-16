@@ -1,0 +1,58 @@
+<!-- 
+Tested using javascript in STACK-exercises so created this picture of model of vocabulary {R,P}, where ar(R)=2, ar(P)=1.
+@ Reijo Jaakkola
+@ reijo.jaakkola@tuni.fi
+-->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    </head>
+    <body>
+        <script type="text/javascript" charset="UTF-8" src="//cdnjs.cloudflare.com/ajax/libs/jsxgraph/0.99.7/jsxgraphcore.js"></script>
+        <div id="box" class="jxgbox" style="width:700px; height:300px;"></div>
+
+        <script type="text/javascript">
+        JXG.Options.renderer = 'svg';
+        var boxDimensions = [-5,5,5,-5];
+        var board = JXG.JSXGraph.initBoard('box', {boundingbox:boxDimensions, showNavigation: false, showCopyright: false});
+        
+        var domainCoords = [[-4.5,2],[-3.5,1],[-0.5,2],[-1.5,1],[-4.5,-2],[-3.5,-1],[-2.5,0]]
+				var domainCoords2 = [[2,0],[2,2],[2,4],[2,-2],[2,-4]]
+
+				var R = [[domainCoords[0],domainCoords[1]], [domainCoords[2],domainCoords[3]], [domainCoords[4],domainCoords[5]],
+                 [domainCoords[1],domainCoords[6]], [domainCoords[3],domainCoords[6]], [domainCoords[5],domainCoords[6]]]
+
+				var R2 = [[domainCoords2[0],domainCoords2[1]],[domainCoords2[1],domainCoords2[2]],
+                  [domainCoords2[0],domainCoords2[3]],[domainCoords2[3],domainCoords2[4]]]
+
+        for (var i = 0; i < domainCoords.length; ++i) {
+            board.create('point',domainCoords[i], {color:'black', name: '', fixed: true, highlight:false, showinfobox: false})
+       	}
+        
+        for (var i = 0; i < domainCoords2.length; ++i) {
+        		board.create('point',domainCoords2[i], {color:'black', name: '', fixed: true, highlight:false, showinfobox: false})
+        }
+				
+        for (var i = 0; i < R.length; ++i) {
+                board.create('line', R[i], {strokeWidth:4, straightFirst:false, straightLast:false, highlight:false, fixed: true})
+        }
+        
+        for (var i = 0; i < R2.length; ++i) {
+                board.create('line', R2[i], {strokeWidth:4, straightFirst:false, straightLast:false, highlight:false, fixed: true})
+        }
+        
+        function getAnswerInput(a) {
+            var myElem=document.getElementsByTagName('input')
+            for (var i = 0; i < myElem.length; i++) {
+                if (myElem[i].id.indexOf(a)>=0){
+                    return myElem[i]
+                }
+            }
+            return null;
+        }
+        </script>
+    </body>
+</html>
