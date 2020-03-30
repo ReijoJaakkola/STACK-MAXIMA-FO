@@ -214,7 +214,7 @@ IsFormulaTrue(Model, Assignment, Formula):=block([IsTrue, ModelDomain, D, u, w],
         /* Verify that every element of the model satisfy the next subformula. */
         for i:1 thru length(ModelDomain) do(
             if(IsFormulaTrue(Model, cons([charat(Formula,2),ModelDomain[i]],Assignment),substring(Formula,3,slength(Formula)+1))=0) then
-            (IsTrue: 0)),
+            (IsTrue: 0, i: length(ModelDomain))),
         return(IsTrue))
     /* Next case is the existential quantification. */
     else if(charat(Formula,1)="E") then(
@@ -230,7 +230,7 @@ IsFormulaTrue(Model, Assignment, Formula):=block([IsTrue, ModelDomain, D, u, w],
         /* Verify that at least one element of the domain satisfies the formula. */
         for i:1 thru length(ModelDomain) do(
             if(IsFormulaTrue(Model, cons([charat(Formula,2),ModelDomain[i]],Assignment),substring(Formula,3,slength(Formula)+1))=1) then
-            (IsTrue: 1)),
+            (IsTrue: 1, i: length(ModelDomain))),
         return(IsTrue))
     else(
         /* Rest of the cases are the different binary connectives. These should be
