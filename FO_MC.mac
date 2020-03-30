@@ -1,5 +1,5 @@
 /*
-Code for performing model checking for FO^4-formulas (four variable fragment of FO).
+Code for performing model checking for FO^5-formulas (five variable fragment of FO).
 @Reijo Jaakkola
 @reijo.jaakkola@tuni.fi
 */
@@ -201,7 +201,7 @@ IsFormulaTrue(Model, Assignment, Formula):=block([IsTrue, ModelDomain, D, u, w],
     (return(1-(IsFormulaTrue(Model, Assignment, sremovefirst("!",Formula)))))
     /* Next we have the cases for universal and existential quantification.
     First universal quantification. */
-    else if(charat(Formula,1)="A") then(
+    else if(charat(Formula,1)="U") then(
         IsTrue: 1,
         /* By assumption we know that the assignment contains already
         an intepretation for the variable being quantified over. So remove that pair
@@ -239,25 +239,25 @@ IsFormulaTrue(Model, Assignment, Formula):=block([IsTrue, ModelDomain, D, u, w],
         D:InnerMostOperator(Formula),
         if(charat(Formula,D)="|") then (
             u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
-            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+1,slength(Formula)+1)),
+            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+1,slength(Formula))),
             return(u+w-u*w))
         else if(charat(Formula,D)="&") then (
             u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
-            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+1,slength(Formula)+1)),
+            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+1,slength(Formula))),
             return(u*w))
         else if(charat(Formula,D)="-") then (
             u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
-            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+2,slength(Formula)+1)),
+            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+2,slength(Formula))),
             return(1-u+w-(1-u)*w))
         else (
             u:IsFormulaTrue(Model, Assignment, substring(Formula,2,D)),
-            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+3,slength(Formula)+1)),
+            w:IsFormulaTrue(Model, Assignment, substring(Formula,D+3,slength(Formula))),
             return((1-u+w-(1-u)*w)*(1+u-w-u*(1-w))))))$
 
 /*
 @param[in]  List
 
-@return     List of subtuples of length four.
+@return     List of subtuples of length five.
 */
 subtuples(list):=block([tuples],
     tuples: makelist(0,0),
@@ -265,7 +265,8 @@ subtuples(list):=block([tuples],
         for j:1 thru length(list) do (
             for k:1 thru length(list) do (
                 for l:1 thru length(list) do (
-                    tuples: cons([list[i],list[j],list[k],list[l]],tuples))))),
+					for m:1 thru length(list) do (
+						tuples: cons([list[i],list[j],list[k],list[l],list[m]],tuples)))))),
     return(tuples))$
 /*
 Evaluate an FO^4 formula over the given model by returning the set of tuples of 
@@ -280,14 +281,14 @@ FOQuery(Model, Formula):=block([ModelDomain, tuples, satTuples, assignment],
     /* Recall that a model is a pair where the first part is the domain.
     Since it is a set, we should first listify it. */
     ModelDomain: listify(Model[1]),
-    /* Obtain all the subtuples of ModelDomain that have length four. */
+    /* Obtain all the subtuples of ModelDomain that have length five. */
     tuples: subtuples(ModelDomain),
     /* Initialize the list of satisfying assignments. */
     satTuples: makelist(0,0),
     /* Go through all the tuples and check which one of them satisfy the formula. */
     for i:1 thru length(tuples) do (
         /* Create an assignment from the tuple. */
-        assignment: [["x",tuples[i][1]],["y",tuples[i][2]],["z",tuples[i][3]],["w",tuples[i][4]]],
+        assignment: [["x",tuples[i][1]],["y",tuples[i][2]],["z",tuples[i][3]],["w",tuples[i][4]],["v",tuples[i][5]]],
         if (is(IsFormulaTrue(Model, assignment, Formula) = 1)) then (
             satTuples: cons(tuples[i], satTuples))),
     return(satTuples))$
@@ -305,14 +306,14 @@ LazyFOQuery(Model, Formula):=block([ModelDomain, tuples, satTuple, assignment],
     /* Recall that a model is a pair where the first part is the domain.
     Since it is a set, we should first listify it. */
     ModelDomain: listify(Model[1]),
-    /* Obtain all the subtuples of ModelDomain that have length four. */
+    /* Obtain all the subtuples of ModelDomain that have length five. */
     tuples: subtuples(ModelDomain),
     /* The satisfying assignment. */
     satTuple: [],
     /* Go through all the tuples and check which one of them satisfy the formula. */
     for i:1 thru length(tuples) do (
         /* Create an assignment from the tuple. */
-        assignment: [["x",tuples[i][1]],["y",tuples[i][2]],["z",tuples[i][3]],["w",tuples[i][4]]],
+        assignment: [["x",tuples[i][1]],["y",tuples[i][2]],["z",tuples[i][3]],["w",tuples[i][4]],["v",tuples[i][5]]],
         if (is(IsFormulaTrue(Model, assignment, Formula) = 1)) then (
             satTuple: tuples[i],
             i: length(tuples))),
