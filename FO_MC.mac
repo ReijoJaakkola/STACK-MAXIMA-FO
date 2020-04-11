@@ -193,7 +193,7 @@ easier for more complex formulas.
 IsFormulaTrue(Model, Assignment, Formula):=block([IsTrue, ModelDomain, D, u, w],
     /* If the formula does not contain logical constants, then it must
     be an atomic formula. We have a different function for that. */
-    if(NotContainsLogicalConstants(Formula)) then
+	if(NotContainsLogicalConstants(Formula)) then
     (return(IsAtomicFormulaTrue(Model, Assignment, Formula)))
     /* Next case is the case of negation. This is simple: return 1 - the result of recursive 
     call without the negation. */
@@ -269,8 +269,9 @@ subtuples(list):=block([tuples],
 						tuples: cons([list[i],list[j],list[k],list[l],list[m]],tuples)))))),
     return(tuples))$
 /*
-Evaluate an FO^4 formula over the given model by returning the set of tuples of 
-elements of model that satisfy the formula.
+Evaluate an FO^5 formula over the given model by returning the set of tuples of 
+elements of model that satisfy the formula. Probably goes without saying, but even for small models
+this is a very time consuming function.
 
 @param[in]  Model
 @param[in]  Formula
