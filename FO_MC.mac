@@ -6,8 +6,39 @@ Code for performing model checking for FO^5-formulas (five variable fragment of 
 
 /*
 As usual, connectives are denoted by
-A = forall, E = exists, ! = not, & = and, | = or, ->, if...then, <-> = iff
+U = forall, E = exists, ! = not, & = and, | = or, ->, if...then, <-> = iff
 */
+
+/*
+Safe(r) version of charat. Checks whether the given index is legal,
+and in positive case calls charat.
+
+@param[in]	A		String
+@param[in]	index 
+
+@return				false, if index is illegal, and charat(A,index) otherwise.
+*/
+safeCharat(A,index):=block([],
+	if (not(stringp(A)) or index < 1 or index > slength(A)) then (
+		return(false))
+	else (
+		return(charat(A,index))))$
+
+/*
+Safe(r) version of substring. Checks whether the given indexes are lega,
+and in positive case calls substring.
+
+@param[in]	A			String
+@param[in]	startIndex
+@param[in]	endIndex
+
+@return				false, if indexes were illegal, and substring(A, startIndex, endIndex) otherwise.
+*/
+safeSubstring(A,startIndex,endIndex) := block([],
+	if (not(stringp(A)) or startIndex < 1 or endIndex > slength(A) + 1 or startIndex > endIndex) then (
+		return(false))
+	else (
+		return(substring(A,startIndex,endIndex))))$
 
 /*
 Function which removes all the given characters from a given string.
@@ -32,7 +63,7 @@ Function which checks whether a given formula contains any logical constants.
 @return             True iff F has no logical constants.
 */
 NotContainsLogicalConstants(F):=block([Formula],
-    cleanedFormula: ClearString(["A","E","!","&","|","->","<->"],F),
+    cleanedFormula: ClearString(["U","E","!","&","|","->","<->"],F),
     if (slength(cleanedFormula) = slength(F)) then (return(true))
     else (return(false)))$
 
@@ -62,6 +93,38 @@ InnerMostOperator(F) := block([index, c],
         )
    ),
    return(index))$
+
+/*
+Function which verifies whether a given string represents a FO formula.
+
+@param[in] F				String
+@param[in] atomicFormulas	Set of atomic formulas that F can contain.
+@param[in] variables		Set of variables that F can contain.
+
+@return 					True iff F represents a FO formula.
+*/	
+isFoFormula(F, atomicFormulas, variables):=block([],
+	if (not(stringp(F))) then (
+		return(false)),
+	if (notContainsLogicalConstants(F)) then (
+		return(elementp(F, atomicFormulas)))
+	else if (safeCharat(F,1) = "!") then (
+		return(isFoFormula(safeSubstring(F,2,slength(F)+1), atomicFormulas, variables)))
+	else if (safeCharat(F,1) = "U" or safeCharat(F,1) = "E") then (
+		if (not(elementp(safeCharat(F,2), variables))) then (
+			return(false))
+		else (
+			return(isFoFormula(safeSubstring(F,3,slength(F)+1), atomicFormulas, variables))))
+	else (
+		D: innerMostOperator(F, 1),
+		if (safeCharat(F,D) = "|" or safeCharat(F,D) = "&") then (
+			return(isFoFormula(safeSubstring(F,2,D),atomicFormulas,variables) and isFoFormula(safeSubstring(F,D+1,slength(F)),atomicFormulas,variables)))
+		else if (safeCharat(F,D) = "-") then (
+			return(isFoFormula(safeSubstring(F,2,D),atomicFormulas,variables) and isFoFormula(safeSubstring(F,D+2,slength(F)),atomicFormulas,variables)))
+		else if (safeCharat(F,D) = "<") then (
+			return(isFoFormula(safeSubstring(F,2,D),atomicFormulas,variables) and isFoFormula(safeSubstring(F,D+3,slength(F)),atomicFormulas,variables)))
+		else (
+			return(false))))$
 
 /*
 Function which returns the set of variables that appear in a atomic formula
@@ -114,12 +177,12 @@ relation symbol in a given model.
 InterpretationFor(Model,R):=block([], return(assoc(R,Model[2])))$
 
 /*
-Since we are concentrating on FO^4, we fix that the set of variables that can appear
+Since we are concentrating on FO^5, we fix that the set of variables that can appear
 are from the set
-    {x,y,z,w}
+    {x,y,z,w,u}
 An assignment for model M will be understood in the rest of the code to be of the form
-    [[x,a],[y,b],[z,c],[w,d]],
-where a,b,c,d are from the domain of M (i.e. with previous notation from A). In particular
+    [[x,a],[y,b],[z,c],[w,d],[u,e]],
+where a,b,c,d,e are from the domain of M (i.e. with previous notation from A). In particular
 we assume that for the rest of the code that assignments always interpretate every possible variable
 (note that by the locality of FO this is possible). Also, since assignments are basically
 dictionaries, to obtain the interpretation for variable, say x,
@@ -179,7 +242,7 @@ IsAtomicFormulaTrue(Model, Assignment, AtomicFormula):=block([],
         
 /*
 Function for verifying whether a given assignment for a given model satisfies a given
-FO^4-formula in that model.
+FO^5-formula in that model.
 
 Note that the function returns either 0 or 1. This makes model checking calculations
 easier for more complex formulas.
@@ -345,3 +408,18 @@ SingleFOQuery(Model, Formula, Assignment, Variable):=block([ModelDomain, satElem
         if (is(IsFormulaTrue(Model, extendedAssignment, Formula) = 1)) then (
             satElements: cons(ModelDomain[i],satElements))),
     return(satElements))$
+	
+/*
+Model checking for sentences.
+
+@param[in]  Model
+@param[in]  Sentence
+
+@return                 1 if Model \models Sentence and 0 otherwise.
+*/
+FOMC(Model, Formula):=block([ModelDomain, assignment],
+    /* Recall that a model is a pair where the first part is the domain.*/
+    ModelDomain: listify(Model[1]),
+	/*Some arbitrary assignment required by IsFormulaTrue.*/
+    assignment: [["x",ModelDomain[1]],["y",ModelDomain[1]],["z",ModelDomain[1]],["w",ModelDomain[1]],["v",ModelDomain[1]]],
+    return(IsFormulaTrue(Model, assignment, Formula)))$
