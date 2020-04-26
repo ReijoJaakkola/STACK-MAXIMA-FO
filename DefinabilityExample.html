@@ -25,6 +25,9 @@ Tested using javascript in STACK-exercises so created this picture of model of v
         var R = [[domainCoords[0],domainCoords[3]],[domainCoords[1],domainCoords[3]], [domainCoords[2],domainCoords[3]]];
 
         var R2 = [[domainCoords2[0],domainCoords2[1]],[domainCoords2[0],domainCoords2[3]],[domainCoords2[3],domainCoords2[4]]];
+        
+        var t1 = board.create('text',[-4,-3,"M"]);
+        var t1 = board.create('text',[4,-3.5,"N"]);
 
         for (var i = 0; i < domainCoords.length; ++i) {
             board.create('point',domainCoords[i], {color:'black', name: '', fixed: true, highlight:false, showinfobox: false})
