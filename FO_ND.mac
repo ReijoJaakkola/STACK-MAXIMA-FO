@@ -177,7 +177,7 @@ isFoFormula(F, atomicFormulas, variables):=block([],
 	if (notContainsLogicalConstants(F)) then (
 		return(elementp(F, atomicFormulas)))
 	else if (safeCharat(F,1) = "!") then (
-		return(true))
+		return(isFoFormula(safeSubstring(F,2,slength(F)+1), atomicFormulas, variables)))
 	else if (safeCharat(F,1) = "U" or safeCharat(F,1) = "E") then (
 		if (not(elementp(safeCharat(F,2), variables))) then (
 			return(false))
@@ -186,11 +186,11 @@ isFoFormula(F, atomicFormulas, variables):=block([],
 	else (
 		D: innerMostOperator(F, 1),
 		if (safeCharat(F,D) = "|" or safeCharat(F,D) = "&") then (
-			return(isFoFormula(substring(F,2,D),atomicFormulas,variables) and isFoFormula(substring(F,D+1,slength(F)),atomicFormulas,variables)))
+			return(isFoFormula(safeSubstring(F,2,D),atomicFormulas,variables) and isFoFormula(safeSubstring(F,D+1,slength(F)),atomicFormulas,variables)))
 		else if (safeCharat(F,D) = "-") then (
-			return(isFoFormula(substring(F,2,D),atomicFormulas,variables) and isFoFormula(substring(F,D+2,slength(F)),atomicFormulas,variables)))
+			return(isFoFormula(safeSubstring(F,2,D),atomicFormulas,variables) and isFoFormula(safeSubstring(F,D+2,slength(F)),atomicFormulas,variables)))
 		else if (safeCharat(F,D) = "<") then (
-			return(isFoFormula(substring(F,2,D),atomicFormulas,variables) and isFoFormula(substring(F,D+3,slength(F)),atomicFormulas,variables)))
+			return(isFoFormula(safeSubstring(F,2,D),atomicFormulas,variables) and isFoFormula(safeSubstring(F,D+3,slength(F)),atomicFormulas,variables)))
 		else (
 			return(false))))$
 	

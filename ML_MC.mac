@@ -21,7 +21,7 @@ another set B.
 
 @return         True iff A is a subset of B.
 */
-subset(A,B) := block([], return(intersection(A,B) = A))$
+realSubset(A,B) := block([], return(intersection(A,B) = A))$
 
 /*
 Function for finding the index where the innermost (binary) connective
@@ -142,7 +142,7 @@ modelChecking(M,F) := block([worldLabels, sortedSubformulas, withoutDiamond, wit
 	and form a sorted sequence out of them
 	with respect to the length of the subformulas.
 	*/
-	sortedSubformulas: reverse(listify(subformulas(F))),
+	sortedSubformulas: sort(listify(subformulas(F)), lambda([A,B], slength(A) < slength(B))),
 	for i:1 thru length(sortedSubformulas) do (
 		/*
 		First check what kind of subformula we are dealing with.
@@ -159,12 +159,12 @@ modelChecking(M,F) := block([worldLabels, sortedSubformulas, withoutDiamond, wit
 			have a successor where the subformula after diamond holds.
 			*/
 			withoutDiamond: substring(sortedSubformulas[i],2,slength(sortedSubformulas[i])+1),
-			labelThese: set(),
-			for i:1 thru length(M[1]) do (
-				reachableStates: assoc(M[1][i], M[2]),
+			labelThese: setify(makelist(0,0)),
+			for j:1 thru length(M[1]) do (
+				reachableStates: assoc(M[1][j], M[2]),
 				alreadyLabeled: assoc(withoutDiamond, worldLabels),
 				if (cardinality(intersection(reachableStates, alreadyLabeled)) > 0) then (
-					labelThese: union({M[1][i]},labelThese))),
+					labelThese: union({M[1][j]},labelThese))),
 			push([sortedSubformulas[i], labelThese], worldLabels))
 		else if (charat(sortedSubformulas[i],1) = "S") then (
 			/*
@@ -172,64 +172,64 @@ modelChecking(M,F) := block([worldLabels, sortedSubformulas, withoutDiamond, wit
 			in every successor the subformula after square holds.
 			*/
 			withoutSquare: substring(sortedSubformulas[i],2,slength(sortedSubformulas[i])+1),
-			labelThese: set(),
-			for i:1 thru length(M[1]) do (
-				reachableStates: assoc(M[1][i], M[2]),
+			labelThese: setify(makelist(0,0)),
+			for j:1 thru length(M[1]) do (
+				reachableStates: assoc(M[1][j], M[2]),
 				alreadyLabeled: assoc(withoutSquare, worldLabels),
-				if (subset(reachableStates, alreadyLabeled)) then (
-					labelThese: union({M[1][i]}, labelThese))),
+				if (realSubset(reachableStates, alreadyLabeled)) then (
+					labelThese: union({M[1][j]}, labelThese))),
 			push([sortedSubformulas[i], labelThese], worldLabels))
 		else if (charat(sortedSubformulas[i],1) = "!") then (
 			/*
 			Where is the formula after the negation false?
 			*/
 			subformula: substring(sortedSubformulas[i],2,slength(sortedSubformulas[i])+1),
-			labelThese: set(),
-			for i:1 thru length(M[1]) do (
-				if (not(elementp(M[1][i], assoc(subformula, worldLabels)))) then (
-					labelThese: union({M[1][i]}, labelThese))),
+			labelThese: setify(makelist(0,0)),
+			for j:1 thru length(M[1]) do (
+				if (not(elementp(M[1][j], assoc(subformula, worldLabels)))) then (
+					labelThese: union({M[1][j]}, labelThese))),
 			push([sortedSubformulas[i], labelThese], worldLabels))
 		else (
 			/*
 			What is the innermost connective?
 			*/
-			index: innerMostOperator(F,1),
+			index: innerMostOperator(sortedSubformulas[i],1),
 			/*
 			Add all the labels where the immediate subformulas hold.
 			*/
-			if (charat(F,index) = "|") then (
+			if (charat(sortedSubformulas[i],index) = "|") then (
 				subformula1: substring(sortedSubformulas[i],2,index),
 				subformula2: substring(sortedSubformulas[i],index+1,slength(sortedSubformulas[i])),
-				labelThese: set(),
-				for i:1 thru length(M[1]) do (
-					if (elementp(M[1][i], assoc(subformula1, worldLabels)) or elementp(M[1][i], assoc(subformula2, worldLabels))) then (
-						labelThese: union({M[1][i]}, labelThese))),
+				labelThese: setify(makelist(0,0)),
+				for j:1 thru length(M[1]) do (
+					if (elementp(M[1][j], assoc(subformula1, worldLabels)) or elementp(M[1][j], assoc(subformula2, worldLabels))) then (
+						labelThese: union({M[1][j]}, labelThese))),
 				push([sortedSubformulas[i], labelThese], worldLabels))		
-			else if (charat(F,index) = "&") then (
+			else if (charat(sortedSubformulas[i],index) = "&") then (
 				subformula1: substring(sortedSubformulas[i],2,index),
 				subformula2: substring(sortedSubformulas[i],index+1,slength(sortedSubformulas[i])),
-				labelThese: set(),
-				for i:1 thru length(M[1]) do (
-					if (elementp(M[1][i], assoc(subformula1, worldLabels)) and elementp(M[1][i], assoc(subformula2, worldLabels))) then (
-						labelThese: union({M[1][i]}, labelThese))),
+				labelThese: setify(makelist(0,0)),
+				for j:1 thru length(M[1]) do (
+					if (elementp(M[1][j], assoc(subformula1, worldLabels)) and elementp(M[1][j], assoc(subformula2, worldLabels))) then (
+						labelThese: union({M[1][j]}, labelThese))),
 				push([sortedSubformulas[i], labelThese], worldLabels))
-			else if (charat(F,index) = "-") then (
+			else if (charat(sortedSubformulas[i],index) = "-") then (
 				subformula1: substring(sortedSubformulas[i],2,index),
 				subformula2: substring(sortedSubformulas[i],index+2,slength(sortedSubformulas[i])),
-				labelThese: set(),
-				for i:1 thru length(M[1]) do (
-					if (not(elementp(M[1][i], assoc(subformula1, worldLabels))) or elementp(M[1][i], assoc(subformula2, worldLabels))) then (
-						labelThese: union({M[1][i]}, labelThese))),
+				labelThese: setify(makelist(0,0)),
+				for j:1 thru length(M[1]) do (
+					if (not(elementp(M[1][j], assoc(subformula1, worldLabels))) or elementp(M[1][j], assoc(subformula2, worldLabels))) then (
+						labelThese: union({M[1][j]}, labelThese))),
 				push([sortedSubformulas[i], labelThese], worldLabels))
 			else (
 				subformula1: substring(sortedSubformulas[i],2,index),
 				subformula2: substring(sortedSubformulas[i],index+1,slength(sortedSubformulas[i])),
-				labelThese: set(),
-				for i:1 thru length(M[1]) do (
-					if (elementp(M[1][i], assoc(subformula1, worldLabels)) and elementp(M[1][i], assoc(subformula2, worldLabels))) then (
-						labelThese: union({M[1][i]}, labelThese))
-					else if (not(elementp(M[1][i], assoc(subformula1, worldLabels))) and not(elementp(M[1][i], assoc(subformula2, worldLabels)))) then (
-						labelThese: union({M[1][i]}, labelThese))),
+				labelThese: setify(makelist(0,0)),
+				for j:1 thru length(M[1]) do (
+					if (elementp(M[1][j], assoc(subformula1, worldLabels)) and elementp(M[1][j], assoc(subformula2, worldLabels))) then (
+						labelThese: union({M[1][j]}, labelThese))
+					else if (not(elementp(M[1][j], assoc(subformula1, worldLabels))) and not(elementp(M[1][j], assoc(subformula2, worldLabels)))) then (
+						labelThese: union({M[1][j]}, labelThese))),
 				push([sortedSubformulas[i], labelThese], worldLabels)))),
 	/*Return the set of worlds that we labeled with the original formula.*/
 	return(assoc(F, worldLabels)))$
