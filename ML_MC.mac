@@ -117,13 +117,19 @@ Models of modal logic will be given as a triple
 
 M = (W, R, V)
 
-where W is a seuqence, R is a dictionary mapping each world in W
-to a set and V is a dictionary which maps each propositional symbol
+where W is a sequence, R is a dictionary which maps each world in W
+to a subset of W and V is a dictionary which maps each propositional symbol
 into a subset of W where it is true.
 */
 
 /*
+Function for calculating the set of worlds in a given Kripke model
+M where the given formula F of modal logic is true.
 
+@param[in] M	The Kripke model.
+@param[in] F	Formula of modal logic.
+
+@return         Set of worlds where the formula is true.
 */
 modelChecking(M,F) := block([worldLabels, sortedSubformulas, withoutDiamond, withoutSquare, reachableStates, alreadyLabeled, subformula, index, subformula1, subformula2],
 	/*
