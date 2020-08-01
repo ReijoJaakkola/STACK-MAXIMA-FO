@@ -1,5 +1,5 @@
 <!-- 
-Tested using javascript in STACK-exercises so created this picture of model of vocabulary {R,P}, where ar(R)=2, ar(P)=1.
+Tested using javascript in STACK-exercises so created this picture of model of vocabulary {R}, where ar(R)=2.
 @ Reijo Jaakkola
 @ reijo.jaakkola@tuni.fi
 -->
@@ -25,12 +25,12 @@ Tested using javascript in STACK-exercises so created this picture of model of v
         var R = [[domainCoords[0],domainCoords[3]],[domainCoords[1],domainCoords[3]], [domainCoords[2],domainCoords[3]]];
 
         var R2 = [[domainCoords2[0],domainCoords2[1]],[domainCoords2[0],domainCoords2[3]],[domainCoords2[3],domainCoords2[4]]];
-        
+
         var t1 = board.create('text',[-4,-3,"M"]);
         var t1 = board.create('text',[4,-3.5,"N"]);
 
         for (var i = 0; i < domainCoords.length; ++i) {
-            board.create('point',domainCoords[i], {color:'black', name: '', fixed: true, highlight:false, showinfobox: false})
+                board.create('point',domainCoords[i], {color:'black', name: '', fixed: true, highlight:false, showinfobox: false})
        	}
         
         for (var i = 0; i < domainCoords2.length; ++i) {
@@ -43,16 +43,6 @@ Tested using javascript in STACK-exercises so created this picture of model of v
         
         for (var i = 0; i < R2.length; ++i) {
                 board.create('line', R2[i], {strokeWidth:4, straightFirst:false, straightLast:false, highlight:false, fixed: true})
-        }
-        
-        function getAnswerInput(a) {
-            var myElem=document.getElementsByTagName('input')
-            for (var i = 0; i < myElem.length; i++) {
-                if (myElem[i].id.indexOf(a)>=0){
-                    return myElem[i]
-                }
-            }
-            return null;
         }
         </script>
     </body>
