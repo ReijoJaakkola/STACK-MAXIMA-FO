@@ -228,7 +228,7 @@ modelChecking(M,F) := block([worldLabels, sortedSubformulas, withoutDiamond, wit
 				for j:1 thru length(M[1]) do (
 					if (elementp(M[1][j], assoc(subformula1, worldLabels)) and elementp(M[1][j], assoc(subformula2, worldLabels))) then (
 						labelThese: union({M[1][j]}, labelThese))
-					else if (not(elementp(M[1][j], assoc(subformula1, worldLabels))) and not(elementp(M[1][j], assoc(subformula2, worldLabels)))) then (
+					else if (not(elementp(M[1][j], assoc(subformula1, worldLabels))) and not(elementp(M[1][j], assoc	(subformula2, worldLabels)))) then (
 						labelThese: union({M[1][j]}, labelThese))),
 				push([sortedSubformulas[i], labelThese], worldLabels)))),
 	/*Return the set of worlds that we labeled with the original formula.*/
