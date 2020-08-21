@@ -74,10 +74,32 @@ cartesianProduct(relation1, relation2) := block([product],
 	/*Make a list out of the cartesian product so that we can iterate it.*/
 	product: listify(cartesian_product(relation1[2], relation2[2])),
 	for i:1 thru length(product) do (
-		/*Needed to convert f.e. [[0,1],0] to [0,1,0].*/
+		/*Flattening is needed to convert f.e. [[0,1],0] to [0,1,0].*/
 		product[i]: flatten(product[i])),
 	/*Combine the result with the new arity.*/
 	return([relation1[1] + relation2[1],setify(product)]))$
+
+/*
+@param[in] relation1
+@param[in] relation2
+@return    Union of the two relations, if they have the same arities.
+*/
+arityDefinedUnion(relation1, relation2) := block([],
+	if (not (relation1[1] = relation2[1])) then (
+		return(false))
+	else (
+		return([relation1[1], union(relation1[2], relation2[2])])))$
+		
+/*
+@param[in] relation1
+@param[in] relation2
+@return    Intersection of the two relations, if they have the same arities.
+*/
+arityDefinedIntersection(relation1, relation2) := block([],
+	if (not (relation1[1] = relation2[1])) then (
+		return(false))
+	else (
+		return([relation1[1], intersection(relation1[2], relation2[2])])))$
 
 /*
 @param[in]	relation
