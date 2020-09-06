@@ -95,34 +95,62 @@ InnerMostOperator(F) := block([index, c],
    return(index))$
 
 /*
+Function which verifies whether a given string represents an FO atomic formula.
+
+@param[in] F				String
+@param[in] vocabulary       Set of relation symbols F can contain.
+@param[in] variables		Set of variables that F can contain.
+
+@return 					True iff F represents an FO atomic formula.
+*/	
+isFoAtomicFormula(F, vocabulary, variables) := block([variableTuple, valid],
+	if (slength(F) < 4) then (
+		return(false)
+	),
+	if not elementp(charat(F,1),vocabulary) then (
+		return(false)
+	),
+	variableTuple: safeSubstring(F,2,slength(F)+1),
+	if not charat(variableTuple,1) = "(" or not charat(variableTuple, slength(variableTuple)) = ")" then (
+		return(false)
+	),
+	variableTuple: safeSubstring(variableTuple,2,slength(variableTuple)),
+	valid: true,
+	for i:1 thru slength(variableTuple) do (
+		if not charat(variableTuple, i) = "," then (
+			if not elementp(charat(variableTuple, i),variables) then (
+				valid: false))),
+	return(valid))$
+	
+/*
 Function which verifies whether a given string represents a FO formula.
 
 @param[in] F				String
-@param[in] atomicFormulas	Set of atomic formulas that F can contain.
+@param[in] vocabulary       Set of relation symbols F can contain.
 @param[in] variables		Set of variables that F can contain.
 
 @return 					True iff F represents a FO formula.
 */	
-isFoFormula(F, atomicFormulas, variables):=block([],
+isFoFormula(F, vocabulary, variables):=block([],
 	if (not(stringp(F))) then (
 		return(false)),
 	if (NotContainsLogicalConstants(F)) then (
-		return(elementp(F, atomicFormulas)))
+		return(isFoAtomicFormula(F, vocabulary, variables)))
 	else if (safeCharat(F,1) = "!") then (
-		return(isFoFormula(safeSubstring(F,2,slength(F)+1), atomicFormulas, variables)))
+		return(isFoFormula(safeSubstring(F,2,slength(F)+1), vocabulary, variables)))
 	else if (safeCharat(F,1) = "U" or safeCharat(F,1) = "E") then (
 		if (not(elementp(safeCharat(F,2), variables))) then (
 			return(false))
 		else (
-			return(isFoFormula(safeSubstring(F,3,slength(F)+1), atomicFormulas, variables))))
+			return(isFoFormula(safeSubstring(F,3,slength(F)+1), vocabulary, variables))))
 	else (
-		D: InnerMostOperator(F, 1),
+		D: InnerMostOperator(F),
 		if (safeCharat(F,D) = "|" or safeCharat(F,D) = "&") then (
-			return(isFoFormula(safeSubstring(F,2,D),atomicFormulas,variables) and isFoFormula(safeSubstring(F,D+1,slength(F)),atomicFormulas,variables)))
+			return(isFoFormula(safeSubstring(F,2,D),vocabulary,variables) and isFoFormula(safeSubstring(F,D+1,slength(F)),vocabulary,variables)))
 		else if (safeCharat(F,D) = "-") then (
-			return(isFoFormula(safeSubstring(F,2,D),atomicFormulas,variables) and isFoFormula(safeSubstring(F,D+2,slength(F)),atomicFormulas,variables)))
+			return(isFoFormula(safeSubstring(F,2,D),vocabulary,variables) and isFoFormula(safeSubstring(F,D+2,slength(F)),vocabulary,variables)))
 		else if (safeCharat(F,D) = "<") then (
-			return(isFoFormula(safeSubstring(F,2,D),atomicFormulas,variables) and isFoFormula(safeSubstring(F,D+3,slength(F)),atomicFormulas,variables)))
+			return(isFoFormula(safeSubstring(F,2,D),vocabulary,variables) and isFoFormula(safeSubstring(F,D+3,slength(F)),vocabulary,variables)))
 		else (
 			return(false))))$
 
