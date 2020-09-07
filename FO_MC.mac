@@ -499,3 +499,51 @@ FOMC(Model, Formula):=block([ModelDomain, assignment],
 	/*Some arbitrary assignment required by IsFormulaTrue.*/
     assignment: [["x",ModelDomain[1]],["y",ModelDomain[1]],["z",ModelDomain[1]],["w",ModelDomain[1]],["v",ModelDomain[1]]],
     return(IsFormulaTrue(Model, assignment, Formula)))$
+	
+/*
+@param[in]	Formula
+
+@return				Set of atomic formulas the formula contains.
+*/
+atomicSubformulas(Formula) := block([],
+    /* If the formula does not contain logical constants, then it must
+    be an atomic formula. */
+	if(NotContainsLogicalConstants(Formula)) then
+    (return({Formula}))
+    else if(charat(Formula,1)="!") then
+    (return(atomicSubformulas(sremovefirst("!",Formula))))
+    else if(charat(Formula,1)="U" or charat(Formula,1)="E") then(
+        return(atomicSubformulas(substring(Formula,3,slength(Formula)+1))))
+    else(
+        D:InnerMostOperator(Formula),
+        if(charat(Formula,D)="|" or charat(Formula,D)="&") then (
+			return(union(atomicSubformulas(substring(Formula,2,D)),atomicSubformulas(substring(Formula,D+1,slength(Formula))))))
+        else if(charat(Formula,D)="-") then (
+            return(union(atomicSubformulas(substring(Formula,2,D)),atomicSubformulas(substring(Formula,D+2,slength(Formula))))))
+        else (
+            return(union(atomicSubformulas(substring(Formula,2,D)),atomicSubformulas(substring(Formula,D+3,slength(Formula))))))))$
+			
+/*
+Given a conjunctive query, returns a canonical model for it.
+*/
+canonicalModel(CQ) := block([atomicFormulas,variables,relation],
+	atomicFormulas: listify(atomicSubformulas(CQ)),
+	Domain: setify(makelist(0,0)),
+	Interpretation: makelist(0,0),
+	for i:1 thru length(atomicFormulas) do (
+		/*Calculate the variables contained in the atomic formula.*/
+		variables: VariablesAtomicFormula(atomicFormulas[i]),
+		/*Make sure the domain is up to date.*/
+		Domain: union(Domain,setify(variables)),
+		/*Update the relation corresponding to the atomic formula.*/
+		relation: charat(atomicFormulas[i],1),
+		if assoc(relation, Interpretation) = false then (
+			/*New relation.*/
+			push([relation,{variables}], Interpretation))
+		else (
+			/*Already existing one.*/
+			previousRelation: assoc(relation, Interpretation),
+			Interpretation: delete([relation, previousRelation], Interpretation),
+			newRelation: union(previousRelation, {variables}),
+			push([relation, newRelation], Interpretation))),
+	return([Domain, Interpretation]))$
