@@ -496,7 +496,22 @@ FOMC(Model, Formula):=block([ModelDomain, assignment],
 	/*Some arbitrary assignment required by IsFormulaTrue.*/
     assignment: [["x",ModelDomain[1]],["y",ModelDomain[1]],["z",ModelDomain[1]],["w",ModelDomain[1]],["v",ModelDomain[1]]],
     return(IsFormulaTrue(Model, assignment, Formula)))$
-	
+
+/*
+Verifies that the given formula does not contain any other logical operators except
+E and &, i.e. the formula is a conjunctive query.
+*/
+isConjunctiveQuery(Formula) := block([X],
+	X: sremove("U",Formula),
+	X: sremove("<",X),
+	X: sremove("-",X),
+	X: sremove("|",X),
+	X: sremove("!",X),
+	if (slength(X) = slength(Formula)) then (
+		return(true))
+	else (
+		return(false)))$
+
 /*
 @param[in]	Formula
 
@@ -563,3 +578,27 @@ equivalenceConjunctiveQueries(CQ1,CQ2) := block([],
 	if (secondOne = 0) then (
 		return(canonicalModel2)),
 	return(true))$
+
+/*
+Writes down a description in finnish for a model using LaTeX syntax.
+*/
+modelToLatex(model) := block([],
+	output: "\(M=(dom(M),R^M,P^M)\), missä ",
+	output: sconcat(output, "\( dom(M) = "),
+	output: sconcat(output, model[1]),
+	output: sconcat(output, "\), \(R^M = \{"),
+	relationR: listify(assoc("R",model[2])),
+	for i:1 thru length(relationR) do (
+		if i > 1 then (
+			output: sconcat(output, ", ")),
+		relationR[i]: ssubst("{","[",sconcat(relationR[i])),
+		relationR[i]: ssubst("}","]",relationR[i]),
+		output: sconcat(output,relationR[i])),
+	output: sconcat(output, "\}\) ja \(P^M = \{"),
+	relationP: listify(assoc("P",model[2])),
+	for i:1 thru length(relationP) do (
+		if i > 1 then (
+			output: sconcat(output, ", ")),
+		output: sconcat(output,relationP[i][1])),
+	output: sconcat(output, "\}\)."),
+	return(output))$
