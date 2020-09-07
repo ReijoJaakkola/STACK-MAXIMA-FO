@@ -292,9 +292,6 @@ IsAtomicFormulaTrue(Model, Assignment, AtomicFormula):=block([tupleOfVariables, 
             interpretationForTuple: push(assoc(tupleOfVariables[i],Assignment),interpretationForTuple)),
         /* Since we used push, we have to reverse the tuple to get matching interpretation. */
         interpretationForTuple: reverse(interpretationForTuple),
-        /* If the length of interpretationForTuple is one, check using only the first element. */
-        if (length(interpretationForTuple) = 1) then 
-        (interpretationForTuple: interpretationForTuple[1]),
         /* Check whether interpretationForTuple belongs to the interpretation for the relational symbol. */
         if(elementp(interpretationForTuple,interpretationForSymbol)) then
         (return(1))
@@ -547,3 +544,22 @@ canonicalModel(CQ) := block([atomicFormulas,variables,relation],
 			newRelation: union(previousRelation, {variables}),
 			push([relation, newRelation], Interpretation))),
 	return([Domain, Interpretation]))$
+	
+/*
+Given two conjunctive queries, verifies whether they are equivalent.
+If the two conjunctive queries are not equivalent, this function returns
+a model where one of the queries is false while the other one is true.
+If the two queries are equivalent, this function returns 1.
+*/
+equivalenceConjunctiveQueries(CQ1,CQ2) := block([],
+	/*Compute the canonical models for both of the conjunctive queries.*/
+	canonicalModel1: canonicalModel(CQ1),
+	canonicalModel2: canonicalModel(CQ2),
+	/*Verify that the first one satisfies CQ2 and the second one satisfies CQ1.*/
+	firstOne: FOMC(canonicalModel1,CQ2),
+	if (firstOne = 0) then (
+		return(canonicalModel1)),
+	secondOne: FOMC(canonicalModel2,CQ1),
+	if (secondOne = 0) then (
+		return(canonicalModel2)),
+	return(true))$
