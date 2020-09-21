@@ -1,0 +1,96 @@
+/*
+Code for calculating truth-values for formulas in conjunctive and disjunctive normal form.
+@Reijo Jaakkola
+@reijo.jaakkola@tuni.fi
+*/
+
+isLiteral(literal, variables) := block([],
+	if charat(literal, 1) = "!" then (
+		literal: sremove("!", literal)
+	),
+	if elementp(literal, variables) then (
+		return(true)
+	)
+	else (
+		return(false)
+	))$
+
+calculateLiterals(separator, clause, variables) := block([literals, valid],
+	clause: sremove(" ",clause),
+	clause: sremove("(",clause),
+	clause: sremove(")",clause),
+	literals: split(clause, separator),
+	valid: true,
+	for i:1 thru length(literals) do (
+		if not isLiteral(literals[i], variables) then (
+			valid: false
+		)
+	),
+	if not valid then (
+		return(false)
+	)
+	else (
+		return(literals)
+	))$
+	
+calculateClauses(separator, sentence, variables) := block([clauses, valid, literals],
+	clauses: makelist(0,0),
+	valid: true,
+	for i:1 thru length(sentence) do (
+		literals: calculateLiterals(separator, sentence[i],variables),
+		if literals = false then (
+			valid: false
+		)
+		else (
+			push(literals, clauses)
+		)
+	),
+	if valid = false then (
+		return(false)
+	)
+	else (
+		return(clauses)
+	))$
+	
+calculateDN(valuation,clauses) := block([clauseResult, literalResult],
+	clauseResult: 0,
+	for i:1 thru length(clauses) do (
+		literalResult: 1,
+		for j:1 thru length(clauses[i]) do (
+			if charat(clauses[i][j],1) = "!" then (
+				literalResult: literalResult * (1 - assoc(sremove("!",clauses[i][j]),valuation))
+			)
+			else (
+				literalResult: literalResult * assoc(clauses[i][j],valuation)
+			)
+		),
+		clauseResult: clauseResult + literalResult
+	),
+	if clauseResult > 0 then (
+		return(1)
+	)
+	else (
+		return(0)
+	))$
+	
+calculateCN(valuation,clauses) := block([clauseResult, literalResult],
+	clauseResult: 1,
+	for i:1 thru length(clauses) do (
+		literalResult: 0,
+		for j:1 thru length(clauses[i]) do (
+			if charat(clauses[i][j],1) = "!" then (
+				literalResult: literalResult + (1 - assoc(sremove("!",clauses[i][j]),valuation))
+			)
+			else (
+				literalResult: literalResult + assoc(clauses[i][j],valuation)
+			)
+		),
+		if literalResult > 0 then (
+			literalResult: 1
+		)
+		else (
+			literalResult: 0
+		),
+		clauseResult: clauseResult*literalResult
+	),
+	return(clauseResult))$
