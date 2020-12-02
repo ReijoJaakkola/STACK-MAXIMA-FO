@@ -104,8 +104,16 @@ Function which verifies whether a given string represents an FO atomic formula.
 @return 					True iff F represents an FO atomic formula.
 */	
 isFoAtomicFormula(F, vocabulary, variables) := block([variableTuple, valid],
-	if (slength(F) < 4) then (
+	if (slength(F) < 3) then (
 		return(false)
+	),
+	if (slength(F) = 3) then (
+		if elementp(charat(F,1), variables) and elementp(charat(F,3), variables) and charat(F,2) = "=" then (
+			return(true)
+		)
+		else (
+			return(false)
+		)
 	),
 	if not elementp(charat(F,1),vocabulary) then (
 		return(false)
@@ -195,6 +203,9 @@ freeVariables(F) := block([variable, subformula, freeVariablesOfSubFormula],
 		subformula: safeSubstring(F, 3, slength(F) + 1),
 		freeVariablesOfSubFormula: freeVariables(subformula),
 		return(delete(variable, freeVariablesOfSubFormula)))
+	else if safeCharat(F, 1) = "!" then (
+		return(freeVariables(safeSubstring(F, 2, slength(F) + 1)))
+		)
 	else (
 		D: InnerMostOperator(F),
 		if (safeCharat(F,D) = "|" or safeCharat(F,D) = "&") then (
