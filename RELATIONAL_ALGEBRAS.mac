@@ -88,14 +88,15 @@ arity(relationalSymbol, vocabulary) := block([], return(assoc(relationalSymbol, 
 @param[in]	relation2
 @return     The cartesian product of the two relations.
 */
-cartesianProduct(relation1, relation2) := block([product],
+cartesianProduct(relation1, relation2) := block([product, list_relation1, list_relation2],
 	/*Make a list out of the cartesian product so that we can iterate it.*/
-	product: listify(cartesian_product(relation1[2], relation2[2])),
-	for i:1 thru length(product) do (
-		/*Flattening is needed to convert f.e. [[0,1],0] to [0,1,0].*/
-		product[i]: flatten(product[i])),
-	/*Combine the result with the new arity.*/
-	return([relation1[1] + relation2[1],setify(product)]))$
+	product: setify(makelist(0,0)),
+	list_relation1: listify(relation1[2]),
+	list_relation2: listify(relation2[2]),
+	for i:1 thru length(list_relation1) do (
+		for j:1 thru length(list_relation2) do (
+			product: union(product, set(append(list_relation1[i],list_relation2[j]))))),
+	return([relation1[1] + relation2[1],product]))$
 
 /*
 @param[in] relation1

@@ -1,2 +1,3 @@
 load("C:/Users/reijo/Desktop/STACK-MAXIMA-FO/ML_MC.mac");
 load("C:/Users/reijo/Desktop/STACK-MAXIMA-FO/FO_MC.mac");
+load("C:/Users/reijo/Desktop/STACK-MAXIMA-FO/RELATIONAL_ALGEBRAS.mac");
