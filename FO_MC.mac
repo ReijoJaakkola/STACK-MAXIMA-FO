@@ -139,7 +139,7 @@ Function which verifies whether a given string represents a FO formula.
 
 @return 					True iff F represents a FO formula.
 */	
-isFoFormula(F, vocabulary, variables):=block([],
+isFoFormula(F, vocabulary, variables):=block([D],
 	if (not(stringp(F))) then (
 		return(false)),
 	if (NotContainsLogicalConstants(F)) then (
@@ -528,7 +528,7 @@ isConjunctiveQuery(Formula) := block([X],
 
 @return				Set of atomic formulas the formula contains.
 */
-atomicSubformulas(Formula) := block([],
+atomicSubformulas(Formula) := block([D],
     /* If the formula does not contain logical constants, then it must
     be an atomic formula. */
 	if(NotContainsLogicalConstants(Formula)) then
